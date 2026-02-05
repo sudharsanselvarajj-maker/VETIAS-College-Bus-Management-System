@@ -255,8 +255,12 @@ def mark_attendance():
     # 3. Geofence Check (Strict 15m against Master Location)
     distance = haversine(lat, lng, master_lat, master_lng)
     
-    # STRICT RULE: 15 meters
-    if distance > 15: 
+    # DEBUG LOGS
+    print(f"\n[DEBUG GEO] Student: ({lat}, {lng}) | Master: ({master_lat}, {master_lng})")
+    print(f"[DEBUG GEO] Distance: {distance} meters (Limit: 100m)\n")
+
+    # RELAXED RULE: 100 meters (Temporary for debugging)
+    if distance > 100: 
          return jsonify({'status': 'error', 'message': f'Geofence Failed! Too far from bus ({int(distance)}m).'}) 
 
     # 4. Device Binding (Zero-Trust Handshake)
@@ -349,6 +353,7 @@ def driver_heartbeat():
         'lng': lng,
         'timestamp': datetime.datetime.now()
     }
+    print(f"[DEBUG DRIVER] Bus {bus_no} Updated: {lat}, {lng}")
     
     # PERSIST TO DB (Fix for "Bus not active" after restart)
     try:

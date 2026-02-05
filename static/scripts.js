@@ -202,28 +202,37 @@ const StudentApp = {
     startScanner: () => {
         StudentApp.scanner = new Html5Qrcode("qr-reader");
 
+        const config = { fps: 10, qrbox: 250 };
+        const onSuccess = async (decodedText, decodedResult) => {
+            // On Success
+            StudentApp.scanner.stop();
+            document.getElementById('qr-reader').style.display = 'none';
+            showToast("QR Scanned! Verifying...", "info");
+
+            // Get Location for Geofence
+            try {
+                const loc = await Utils.getLocation();
+                StudentApp.markAttendance(decodedText, loc);
+            } catch (e) {
+                showToast("Location required for attendance!", "error");
+            }
+        };
+
+        // Attempt 1: Back Camera
         StudentApp.scanner.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: 250 },
-            async (decodedText, decodedResult) => {
-                // On Success
-                StudentApp.scanner.stop();
-                document.getElementById('qr-reader').style.display = 'none';
-                showToast("QR Scanned! Verifying...", "info");
-
-                // Get Location for Geofence
-                try {
-                    const loc = await Utils.getLocation();
-                    StudentApp.markAttendance(decodedText, loc);
-                } catch (e) {
-                    showToast("Location required for attendance!", "error");
-                }
-            },
-            (errorMessage) => {
-                // Parsing error, ignore
-            }
+            config,
+            onSuccess
         ).catch(err => {
-            showToast("Camera Error: " + err, "error");
+            console.warn("Environment camera failed (likely desktop), trying user camera...", err);
+            // Attempt 2: Front Camera (Fallback)
+            StudentApp.scanner.start(
+                { facingMode: "user" },
+                config,
+                onSuccess
+            ).catch(err2 => {
+                showToast("Camera Error: " + err2, "error");
+            });
         });
     },
 

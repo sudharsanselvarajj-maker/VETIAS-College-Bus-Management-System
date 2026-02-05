@@ -54,3 +54,13 @@ This document summarizes the comprehensive updates, security fixes, and UI/UX en
 
 ---
 **Status**: The project is now stable, visually premium, and ready for deployment or college submission.
+
+---
+
+## 5. Attendance & GPS Resilience
+### Robust Geolocation
+- **Dual-Strategy Location**: Implemented a fallback mechanism in `scripts.js`. If high-accuracy GPS times out (10s), it automatically retries with lower accuracy (network-based) to ensure students can always mark attendance even with poor signal.
+- **Improved Error Handling**: Replaced generic error messages with specific feedback (e.g., "GPS Signal Timeout", "Permission Denied").
+
+### Reliable Bus Tracking
+- **Database Persistence**: Modified the driver heartbeat signal to save bus coordinates to the `BusLive` database table instead of relying solely on volatile RAM. This resolves the "Bus not active" error that occurred after server restarts.

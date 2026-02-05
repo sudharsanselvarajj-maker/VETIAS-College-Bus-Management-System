@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Student Portal | VET IAS Bus System</title>
+    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" type="image/x-icon">
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -484,6 +485,17 @@
                     l.classList.add('active');
                 }
             });
+
+            // Auto-Close Mobile Menu (Robust)
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('show')) {
+                const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
+                if (bsCollapse) {
+                    bsCollapse.hide();
+                } else {
+                    navMenu.classList.remove('show');
+                }
+            }
         }
 
         // --- Bridge Logic ---
@@ -527,31 +539,7 @@
             }
         }
 
-        // Toast Support is handled by scripts.js, but we can verify it
-        function showToast(msg, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `p-3 mb-2 rounded-4 shadow-lg text-white d-flex align-items-center animate__animated animate__fadeInRight`;
-            toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
-            toast.style.minWidth = '280px';
 
-            toast.innerHTML = `
-                <div class="me-3 fs-3">
-                    <i class="bi bi-${type === 'error' ? 'exclamation-circle' : 'check-circle'}-fill"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 fw-bold">${type === 'error' ? 'Error' : 'Success'}</h6>
-                    <p class="mb-0 small opacity-75">${msg}</p>
-                </div>
-            `;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(20px)';
-                toast.style.transition = 'all 0.5s ease';
-                setTimeout(() => toast.remove(), 500);
-            }, 3500);
-        }
     </script>
 </body>
 

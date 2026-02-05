@@ -1,7 +1,7 @@
-Flask
-gunicorn
-Flask-Session
-Flask-SQLAlchemy
+flask
+flask-sqlalchemy
+flask-session
 qrcode
-Pillow
+pillow
 email-validator
+gunicorn

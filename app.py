@@ -17,7 +17,7 @@ app.config['SECRET_KEY'] = 'secure_smart_bus_secret_key_123' # Change this in pr
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///smart_bus.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
-SKIP_DEVICE_CHECK = True # Set to False in production
+SKIP_DEVICE_CHECK = os.environ.get('SKIP_DEVICE_CHECK', 'False') == 'True'
 
 db.init_app(app)
 Session(app)
@@ -167,7 +167,8 @@ def login():
         device_id = request.form.get('device_id') # From JS
 
         if user_type == 'student':
-            student = Student.query.filter_by(name=username).first()
+            # Support Login by Name or ID
+            student = Student.query.filter((Student.name == username) | (Student.id == username)).first()
             if student and student.password == password:
                 # Device Binding Check
                 if student.device_id and not SKIP_DEVICE_CHECK:
@@ -175,6 +176,9 @@ def login():
                         return render_template('login.html', error="Login Failed: New device detected. Please use your registered device.")
                 else:
                     # First time login, bind device
+                    if not device_id:
+                        return render_template('login.html', error="Security Error: Device identity could not be verified. Please enable JavaScript.")
+                    
                     student.device_id = device_id
                     db.session.commit()
                 
@@ -323,13 +327,19 @@ def update_master_location():
     return jsonify({'status': 'success', 'message': 'Manual Check-in Deprecated but Kept'})
 
 @app.route('/api/driver-heartbeat', methods=['POST'])
+@login_required
 def driver_heartbeat():
     """
     Automated Heartbeat: Updates RAM Cache. 
     ZERO DB I/O for efficiency.
     """
     data = request.json
-    bus_no = data.get('bus_no')
+    
+    # Security: Ensure it's a driver
+    if session.get('user_type') != 'driver':
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+        
+    bus_no = session.get('bus_no') # Trust session over payload
     lat = data.get('lat')
     lng = data.get('lng')
 
@@ -340,12 +350,25 @@ def driver_heartbeat():
         'timestamp': datetime.datetime.now()
     }
     
-    # Optional: We could update DB asynchronously or every N minutes if needed.
-    # For now, strict RAM only as requested.
+    # PERSIST TO DB (Fix for "Bus not active" after restart)
+    try:
+        bus_live = BusLive.query.get(bus_no)
+        if not bus_live:
+            bus_live = BusLive(bus_no=bus_no)
+            db.session.add(bus_live)
+        
+        bus_live.lat = lat
+        bus_live.lng = lng
+        bus_live.driver_name = session.get('username', 'Driver') # Optional update
+        bus_live.last_updated = datetime.datetime.utcnow()
+        db.session.commit()
+    except Exception as e:
+        print(f"DB Write Error in Heartbeat: {e}")
     
     return jsonify({'status': 'success', 'sync': True})
 
 @app.route('/api/get-qr')
+@login_required
 def get_qr():
     # Generate dynamic QR content
     # Format: BusNo_CurrentTime
@@ -359,6 +382,7 @@ def get_qr():
     return jsonify({'qr_data': data})
 
 @app.route('/api/bus-manifest')
+@login_required
 def bus_manifest():
     bus_no = session.get('bus_no', 'Bus-10')
     # Get attendance for this bus today
@@ -385,6 +409,7 @@ def bus_manifest():
     return jsonify({'manifest': manifest, 'count': len(manifest)})
 
 @app.route('/api/manual-attendance', methods=['POST'])
+@login_required
 def manual_attendance():
     # Helper for Driver/Admin to manually add
     data = request.json
@@ -411,6 +436,7 @@ def manual_attendance():
     return jsonify({'status': 'success', 'message': f'Added {student.name}'})
 
 @app.route('/api/bus-empty-check', methods=['POST'])
+@login_required
 def bus_empty_check():
     bus_no = request.json.get('bus_no')
     # Log this event

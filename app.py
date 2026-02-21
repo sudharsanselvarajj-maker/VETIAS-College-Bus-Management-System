@@ -163,6 +163,16 @@ class NotificationService:
 
     @staticmethod
     def send_parent_email(parent_email, student_name, bus_no, timestamp, date):
+        # Environment Variable Hardening (Defaults for Render)
+        smtp_user = os.environ.get('SMTP_USER')
+        smtp_pass = os.environ.get('SMTP_PASSWORD')
+        smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.environ.get('SMTP_PORT', 587))
+
+        if not smtp_user or not smtp_pass:
+            print("[CRITICAL ERROR] SMTP Credentials missing in environment variables!")
+            return False
+
         if os.environ.get('EMAIL_MODE', 'True') != 'True':
             print("[EMAIL MODE OFF] Skipping email dispatch.")
             return False
@@ -178,7 +188,7 @@ class NotificationService:
         # Professional Message Template
         body = f"""Dear Parent,
 
-This is to inform you that your ward {student.name} has successfully boarded Bus {bus_no} at {timestamp} on {date}.
+This is to inform you that your ward {student_name} has successfully boarded Bus {bus_no} at {timestamp} on {date}.
 Attendance has been securely recorded in the system.
 
 Regards,
@@ -195,7 +205,7 @@ Transport Administration
                 </div>
                 <div style="padding: 30px;">
                     <p>Dear Parent,</p>
-                    <p>This is to inform you that your ward <strong>{student.name}</strong> has successfully boarded <strong>Bus {bus_no}</strong> at <strong>{timestamp}</strong> on <strong>{date}</strong>.</p>
+                    <p>This is to inform you that your ward <strong>{student_name}</strong> has successfully boarded <strong>Bus {bus_no}</strong> at <strong>{timestamp}</strong> on <strong>{date}</strong>.</p>
                     <p>Attendance has been securely recorded in our smart transport system using geofence verification.</p>
                     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #777;">
                         <p>Regards,<br><strong>VET Institute of Arts and Science</strong><br>Transport Administration</p>
@@ -218,10 +228,10 @@ Transport Administration
             msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
             # Setup SMTP Connection
-            server = smtplib.SMTP(os.environ.get('SMTP_SERVER'), int(os.environ.get('SMTP_PORT')))
+            server = smtplib.SMTP(smtp_server, smtp_port)
             server.set_debuglevel(1) # Enable debug for console logs
             server.starttls()
-            server.login(os.environ.get('SMTP_USER'), os.environ.get('SMTP_PASSWORD'))
+            server.login(smtp_user, smtp_pass)
             server.send_message(msg)
             server.quit()
 

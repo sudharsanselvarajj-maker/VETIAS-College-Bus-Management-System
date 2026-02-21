@@ -177,8 +177,11 @@
                 <div>
                     <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">Student
                         Portal</h2>
-                    <p class="text-slate-500 font-medium mt-2">Welcome back, <span class="text-brand-deep font-bold">{{
+                    <p class="text-slate-500 font-medium mt-2">Welcome, <span class="text-brand-deep font-bold">{{
                             student.name }}</span></p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                        Alerts sending to: <span class="text-brand-deep">{{ student.parent_email }}</span>
+                    </p>
                 </div>
                 <button class="premium-btn btn-outline-custom" onclick="location.reload()">
                     <i class="bi bi-arrow-clockwise"></i> Synchronize Data

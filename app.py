@@ -4,6 +4,8 @@ import json
 import math
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -150,9 +152,14 @@ class NotificationService:
         """
         if os.environ.get('EMAIL_MODE', 'False') != 'True':
             print("[EMAIL MODE OFF] Skipping email dispatch.")
-            return
+            return False
 
         to_email = student.parent_email
+        if not to_email or "@" not in to_email:
+            print(f"[EMAIL FAILED] Invalid or missing parent email for {student.name}")
+            NotificationService.log_notification(to_email or "Unknown", 'Email', "Boarding Confirmation", 'Failed', "Missing/Invalid Email")
+            return False
+
         subject = "VET IAS Transport Boarding Confirmation"
         
         # Professional Message Template
@@ -181,7 +188,7 @@ Transport Administration
                         <p>Regards,<br><strong>VET Institute of Arts and Science</strong><br>Transport Administration</p>
                     </div>
                 </div>
-                <div style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 0.8em; color: #999;">
+                <div style="background-image: linear-gradient(to right, #f9f9f9, #fff); padding: 15px; text-align: center; font-size: 0.8em; color: #999;">
                     <p>This is an automated security notification. Do not reply to this email.</p>
                 </div>
             </body>
@@ -189,18 +196,17 @@ Transport Administration
         """
 
         try:
-            from email.mime.multipart import MIMEMultipart
-            from email.header import Header
-
             msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = os.environ.get('SMTP_USER')
+            msg['Subject'] = Header(subject, 'utf-8')
+            msg['From'] = f"VET IAS Transport Alerts <{os.environ.get('SMTP_USER')}>"
             msg['To'] = to_email
 
-            msg.attach(MIMEText(body, 'plain'))
-            msg.attach(MIMEText(html_body, 'html'))
+            msg.attach(MIMEText(body, 'plain', 'utf-8'))
+            msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
+            # Setup SMTP Connection
             server = smtplib.SMTP(os.environ.get('SMTP_SERVER'), int(os.environ.get('SMTP_PORT')))
+            server.set_debuglevel(1) # Enable debug for console logs
             server.starttls()
             server.login(os.environ.get('SMTP_USER'), os.environ.get('SMTP_PASSWORD'))
             server.send_message(msg)
@@ -211,8 +217,8 @@ Transport Administration
             return True
 
         except Exception as e:
-            print(f"EMAIL DISPATCH FAILED: {e}")
-            NotificationService.log_notification(to_email, 'Email', subject, 'Failed', e)
+            print(f"EMAIL DISPATCH ERROR: {str(e)}")
+            NotificationService.log_notification(to_email, 'Email', subject, 'Failed', str(e))
             return False
 
 def send_parent_sms(student, bus_no, timestamp, date):
@@ -455,12 +461,15 @@ def mark_attendance():
     time_str = now.strftime('%H:%M')
     date_str = now.strftime('%d-%m-%Y')
     
+    print(f"[DEBUG ATTENDANCE] Success for {student.name}. Triggering notifications...")
+    
     # SMS Simulation
     if os.environ.get('SMS_SIMULATION_MODE', 'True') == 'True':
         send_parent_sms(student, bus_no_qr, time_str, date_str)
     
     # Professional Email (New Service Layer)
-    NotificationService.send_parent_email(student, bus_no_qr, time_str, date_str)
+    email_status = NotificationService.send_parent_email(student, bus_no_qr, time_str, date_str)
+    print(f"[DEBUG ATTENDANCE] Email Dispatch Result: {email_status}")
 
     return jsonify({'status': 'success', 'message': 'Attendance Marked Successfully'})
 
@@ -610,7 +619,9 @@ def manual_attendance():
         send_parent_sms(student, bus_no, time_str, date_str)
     
     # Professional Email (New Service Layer)
-    NotificationService.send_parent_email(student, bus_no, time_str, date_str)
+    print(f"[DEBUG MANUAL] Success for {student.name}. Triggering email...")
+    email_status = NotificationService.send_parent_email(student, bus_no, time_str, date_str)
+    print(f"[DEBUG MANUAL] Email Dispatch Result: {email_status}")
     
     return jsonify({'status': 'success', 'message': f'Added {student.name}'})
 

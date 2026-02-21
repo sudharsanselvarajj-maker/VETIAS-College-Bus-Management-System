@@ -45,6 +45,12 @@ SKIP_DEVICE_CHECK = os.environ.get('SKIP_DEVICE_CHECK', 'False') == 'True'
 db.init_app(app)
 Session(app)
 
+# VERSION STAMP FOR RENDER LOGS
+print("\n" + "="*50)
+print("🚀 VET IAS SYSTEM: VERSION 3.0 (CLOUD HARDENED) STARTED")
+print(f"   SMTP USER: {os.environ.get('SMTP_USER', 'NOT SET')}")
+print("="*50 + "\n")
+
 # In-Memory Cache for Bus Locations (Energy Efficient - No DB Write)
 BUS_LOCATION_CACHE = {} 
 
@@ -486,7 +492,8 @@ def mark_attendance():
 
     def async_notification_wrapper(app_inst, email_addr, name_str, b_no, t_str, d_str):
         with app_inst.app_context():
-            print(f"[ASYNC] Triggering COMPULSORY email to {email_addr}...")
+            print(f"[ASYNC] ENGINE TRIGGERED for {name_str} at {email_addr}")
+            print(f"[ASYNC] Triggering COMPULSORY email via SMTP...")
             NotificationService.send_parent_email(email_addr, name_str, b_no, t_str, d_str)
 
     threading.Thread(

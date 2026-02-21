@@ -5,6 +5,7 @@ import math
 import smtplib
 import threading
 import logging
+import sys
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
@@ -166,6 +167,7 @@ class NotificationService:
             db.session.commit()
         except Exception as e:
             print(f"FAILED TO LOG NOTIFICATION: {e}")
+            sys.stdout.flush()
 
     @staticmethod
     def send_parent_email(parent_email, student_name, bus_no, timestamp, date):
@@ -177,10 +179,12 @@ class NotificationService:
 
         if not smtp_user or not smtp_pass:
             print("[CRITICAL ERROR] SMTP Credentials missing in environment variables!")
+            sys.stdout.flush()
             return False
 
         if os.environ.get('EMAIL_MODE', 'True') != 'True':
             print("[EMAIL MODE OFF] Skipping email dispatch.")
+            sys.stdout.flush()
             return False
             
         if not parent_email or '@' not in parent_email:
@@ -234,19 +238,29 @@ Transport Administration
             msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
             # Setup SMTP Connection
+            print(f"[SMTP] Connecting to {smtp_server}:{smtp_port}...")
+            sys.stdout.flush()
             server = smtplib.SMTP(smtp_server, smtp_port)
             server.set_debuglevel(1) # Enable debug for console logs
             server.starttls()
+            
+            print(f"[SMTP] Attempting login for {smtp_user}...")
+            sys.stdout.flush()
             server.login(smtp_user, smtp_pass)
+            
+            print(f"[SMTP] Handshake successful. Sending message...")
+            sys.stdout.flush()
             server.send_message(msg)
             server.quit()
 
             print(f"EMAIL SENT SUCCESSFULLY TO: {to_email}")
+            sys.stdout.flush()
             NotificationService.log_notification(to_email, 'Email', subject, 'Sent')
             return True
 
         except Exception as e:
             print(f"EMAIL DISPATCH ERROR: {str(e)}")
+            sys.stdout.flush()
             NotificationService.log_notification(to_email, 'Email', subject, 'Failed', str(e))
             return False
 
@@ -494,14 +508,15 @@ def mark_attendance():
         with app_inst.app_context():
             print(f"[ASYNC] ENGINE TRIGGERED for {name_str} at {email_addr}")
             print(f"[ASYNC] Triggering COMPULSORY email via SMTP...")
+            sys.stdout.flush()
             NotificationService.send_parent_email(email_addr, name_str, b_no, t_str, d_str)
 
     threading.Thread(
         target=async_notification_wrapper, 
-        args=(app, p_email, s_name, bus_no_qr, time_str, date_str),
-        daemon=True
+        args=(app, p_email, s_name, bus_no_qr, time_str, date_str)
     ).start()
-
+    
+    sys.stdout.flush()
     return jsonify({'status': 'success', 'message': 'Attendance Marked Successfully'})
 
 @app.route('/api/submit-complaint', methods=['POST'])
@@ -778,6 +793,26 @@ def delete_student(student_id):
         db.session.rollback()
         print(f"[DEBUG DELETE] ERROR: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/test-email-diagnostic')
+def test_email_diagnostic():
+    # Force a test email to the user's known address
+    target = "sudharsans24aid@vetias.ac.in"
+    print(f"\n[DIAGNOSTIC] Starting manual SMTP test to {target}...")
+    sys.stdout.flush()
+    
+    success = NotificationService.send_parent_email(
+        target, 
+        "Sudharsan (Diag Test)", 
+        "Bus-10", 
+        datetime.datetime.now().strftime('%H:%M'),
+        datetime.datetime.now().strftime('%d-%m-%Y')
+    )
+    
+    if success:
+        return "<h1>DIAGNOSTIC SUCCESS</h1><p>Check your email (and Spam folder) now.</p>"
+    else:
+        return "<h1>DIAGNOSTIC FAILED</h1><p>Check the Render Logs for the exact Error message.</p>"
 
 if __name__ == "__main__":
     with app.app_context():

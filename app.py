@@ -3,6 +3,8 @@ import datetime
 import json
 import math
 import smtplib
+import threading
+import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
@@ -13,6 +15,13 @@ from flask_session import Session
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Configure Logging
+logging.basicConfig(
+    filename='system_activity.log',
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s: %(message)s'
+)
+
 # Load Environment Variables
 load_dotenv()
 
@@ -20,8 +29,15 @@ db = SQLAlchemy()
 
 # Initialize App
 app = Flask(__name__)
+
+# Absolute Path Configuration for Database
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'instance', 'smart_bus.db')
+if not os.path.exists(os.path.dirname(db_path)):
+    os.makedirs(os.path.dirname(db_path))
+
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secure_smart_bus_secret_key_123')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///smart_bus.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 SKIP_DEVICE_CHECK = os.environ.get('SKIP_DEVICE_CHECK', 'False') == 'True'
@@ -146,21 +162,18 @@ class NotificationService:
             print(f"FAILED TO LOG NOTIFICATION: {e}")
 
     @staticmethod
-    def send_parent_email(student, bus_no, timestamp, date):
-        """
-        Sends a professional SMTP email to the registered parent.
-        """
-        if os.environ.get('EMAIL_MODE', 'False') != 'True':
+    def send_parent_email(parent_email, student_name, bus_no, timestamp, date):
+        if os.environ.get('EMAIL_MODE', 'True') != 'True':
             print("[EMAIL MODE OFF] Skipping email dispatch.")
             return False
-
-        to_email = student.parent_email
-        if not to_email or "@" not in to_email:
-            print(f"[EMAIL FAILED] Invalid or missing parent email for {student.name}")
-            NotificationService.log_notification(to_email or "Unknown", 'Email', "Boarding Confirmation", 'Failed', "Missing/Invalid Email")
+            
+        if not parent_email or '@' not in parent_email:
+            print(f"INVALID EMAIL DETECTED: {parent_email}")
+            NotificationService.log_notification(parent_email or "Unknown", 'Email', "Boarding Confirmation", 'Failed', "Missing/Invalid Email")
             return False
 
-        subject = "VET IAS Transport Boarding Confirmation"
+        to_email = parent_email
+        subject = f"🚌 VET IAS Transport: Boarding Confirmation ({student_name})"
         
         # Professional Message Template
         body = f"""Dear Parent,
@@ -392,16 +405,14 @@ def mark_attendance():
     
     student = Student.query.get(session['user_id'])
     
-    # 1. Decode QR Data (Format: BusNo_Timestamp -> e.g., "Bus-10_1700")
-    # Ideally, verify timestamp is recent (within 30-60s)
+    # 1. Decode QR Data
     try:
-        bus_no_qr, timestamp_qr = qr_data.split('_', 1) # simple split
-        # In a real app, you'd decrypt a token here
-    except:
+        bus_no_qr, timestamp_qr = qr_data.split('_', 1)
+    except Exception as e:
+        print(f"[FAIL] QR Decode Error: {e}")
         return jsonify({'status': 'error', 'message': 'Invalid QR Code'})
 
     bus_live = BusLive.query.filter_by(bus_no=bus_no_qr).first()
-    # OPTION: Use Cache if available for fresher data
     cached_loc = BUS_LOCATION_CACHE.get(bus_no_qr)
     
     master_lat, master_lng = 0, 0
@@ -412,35 +423,35 @@ def mark_attendance():
         master_lat = bus_live.lat
         master_lng = bus_live.lng
     else:
+        print(f"[FAIL] Bus {bus_no_qr} location not available in DB or Cache.")
         return jsonify({'status': 'error', 'message': 'Bus not active/Syncing...'})
 
-    # 3. Geofence Check (Strict 15m against Master Location)
+    # 3. Geofence Check (Strict 15m)
     distance = haversine(lat, lng, master_lat, master_lng)
     
-    # DEBUG LOGS
-    print(f"\n[DEBUG GEO] Student: ({lat}, {lng}) | Master: ({master_lat}, {master_lng})")
-    print(f"[DEBUG GEO] Distance: {distance} meters (Limit: 15m)\n")
-
-    # STRICT RULE: 15 meters
+    # SYSTEM LOGS (VERY IMPORTANT FOR USER)
+    print(f"\n[SYSTEM GEO] Student: ({lat}, {lng}) | Bus: ({master_lat}, {master_lng})")
+    print(f"[SYSTEM GEO] Distance: {distance:.2f} meters (Limit: 15m)")
+    
     if distance > 15: 
+         print(f"[FAIL] Geofence Blocked: {student.name} is too far ({int(distance)}m).")
          return jsonify({'status': 'error', 'message': f'Geofence Failed! Too far from bus ({int(distance)}m).'}) 
 
-    # 4. Device Binding (Zero-Trust Handshake)
+    # 4. Device Binding
     current_device = data.get('device_id')
     if not current_device:
+        print("[FAIL] Missing Device ID.")
         return jsonify({'status': 'error', 'message': 'Missing Device Identifier'})
 
-    if student.device_id is None or student.device_id == "":
-        # STATE C: Auto-Bind
+    if not student.device_id:
         student.device_id = current_device
         db.session.commit()
     elif student.device_id != current_device:
-        # STATE B: Reject (Proxy Alert)
-        return jsonify({'status': 'error', 'message': 'Security Breach: Device Mismatch. Please contact Admin.'}), 403
+        print(f"[FAIL] Security Breach: {student.name} device mismatch.")
+        return jsonify({'status': 'error', 'message': 'Security Breach: Device Mismatch.'}), 403
     
-    # STATE A: Match (Proceed)
-
     # 5. Mark Attendance
+    print(f"[SUCCESS] Marking attendance for {student.name} on {bus_no_qr}...")
     new_att = Attendance(
         student_id=student.id,
         student_name=student.name,
@@ -456,20 +467,23 @@ def mark_attendance():
     db.session.add(new_att)
     db.session.commit()
 
-    # 5. Notify Parent (SMS & Email)
+    # 5. Notify Parent - ASYNC
+    p_email = student.parent_email
+    s_name = student.name
     now = datetime.datetime.now()
     time_str = now.strftime('%H:%M')
     date_str = now.strftime('%d-%m-%Y')
-    
-    print(f"[DEBUG ATTENDANCE] Success for {student.name}. Triggering notifications...")
-    
-    # SMS Simulation
-    if os.environ.get('SMS_SIMULATION_MODE', 'True') == 'True':
-        send_parent_sms(student, bus_no_qr, time_str, date_str)
-    
-    # Professional Email (New Service Layer)
-    email_status = NotificationService.send_parent_email(student, bus_no_qr, time_str, date_str)
-    print(f"[DEBUG ATTENDANCE] Email Dispatch Result: {email_status}")
+
+    def async_notification_wrapper(app_inst, email_addr, name_str, b_no, t_str, d_str):
+        with app_inst.app_context():
+            print(f"[ASYNC] Triggering COMPULSORY email to {email_addr}...")
+            NotificationService.send_parent_email(email_addr, name_str, b_no, t_str, d_str)
+
+    threading.Thread(
+        target=async_notification_wrapper, 
+        args=(app, p_email, s_name, bus_no_qr, time_str, date_str),
+        daemon=True
+    ).start()
 
     return jsonify({'status': 'success', 'message': 'Attendance Marked Successfully'})
 
@@ -620,7 +634,7 @@ def manual_attendance():
     
     # Professional Email (New Service Layer)
     print(f"[DEBUG MANUAL] Success for {student.name}. Triggering email...")
-    email_status = NotificationService.send_parent_email(student, bus_no, time_str, date_str)
+    email_status = NotificationService.send_parent_email(student.parent_email, student.name, bus_no, time_str, date_str)
     print(f"[DEBUG MANUAL] Email Dispatch Result: {email_status}")
     
     return jsonify({'status': 'success', 'message': f'Added {student.name}'})

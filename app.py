@@ -59,9 +59,10 @@ with app.app_context():
 
 # VERSION STAMP FOR RENDER LOGS
 print("\n" + "="*50)
-print("🚀 VET IAS SYSTEM: VERSION 3.1 (CLOUD READY) STARTED")
+print("🚀 VET IAS SYSTEM: VERSION 3.2 (PRODUCTION READY) STARTED")
 print(f"   SMTP USER: {os.environ.get('SMTP_USER', 'NOT SET')}")
 print("="*50 + "\n")
+sys.stdout.flush()
 
 # In-Memory Cache for Bus Locations (Energy Efficient - No DB Write)
 BUS_LOCATION_CACHE = {} 
@@ -312,6 +313,11 @@ def login_required(f):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/health')
+def health():
+    # Production health check for Render
+    return jsonify({"status": "healthy", "version": "3.2"}), 200
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -826,5 +832,11 @@ def test_email_diagnostic():
         return "<h1>DIAGNOSTIC FAILED</h1><p>Check the Render Logs for the exact Error message.</p>"
 
 if __name__ == "__main__":
+    # Local development startup
     port = int(os.environ.get("PORT", 5000))
+    print(f"Local Development Server starting on port {port}...")
     app.run(host="0.0.0.0", port=port, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
+else:
+    # Production startup (Gunicorn)
+    print("Production Gunicorn Worker initializing...")
+    sys.stdout.flush()

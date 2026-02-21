@@ -16,12 +16,19 @@ from flask_session import Session
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Configure Logging
-logging.basicConfig(
-    filename='system_activity.log',
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s: %(message)s'
-)
+# Configure Logging (Cloud Friendly)
+try:
+    logging.basicConfig(
+        filename='system_activity.log',
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s: %(message)s'
+    )
+except Exception:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s: %(message)s',
+        stream=sys.stdout
+    )
 
 # Load Environment Variables
 load_dotenv()
@@ -46,9 +53,13 @@ SKIP_DEVICE_CHECK = os.environ.get('SKIP_DEVICE_CHECK', 'False') == 'True'
 db.init_app(app)
 Session(app)
 
+# AUTO-CREATE DATABASE TABLES FOR CLOUD
+with app.app_context():
+    db.create_all()
+
 # VERSION STAMP FOR RENDER LOGS
 print("\n" + "="*50)
-print("🚀 VET IAS SYSTEM: VERSION 3.0 (CLOUD HARDENED) STARTED")
+print("🚀 VET IAS SYSTEM: VERSION 3.1 (CLOUD READY) STARTED")
 print(f"   SMTP USER: {os.environ.get('SMTP_USER', 'NOT SET')}")
 print("="*50 + "\n")
 
@@ -815,18 +826,5 @@ def test_email_diagnostic():
         return "<h1>DIAGNOSTIC FAILED</h1><p>Check the Render Logs for the exact Error message.</p>"
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        # Create Dummy Data on Startup
-        if not Student.query.filter_by(name='student1').first():
-            print("Creating dummy student: student1")
-            s1 = Student(
-                name='student1', 
-                parent_email='parent@example.com', 
-                parent_phone='9876543210', 
-                bus_no='Bus-10', 
-                password=generate_password_hash('pass')
-            )
-            db.session.add(s1)
-            db.session.commit()
-    app.run(host="0.0.0.0", port=5000, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')

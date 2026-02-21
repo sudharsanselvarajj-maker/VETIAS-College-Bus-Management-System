@@ -8,12 +8,17 @@ from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
+from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# Load Environment Variables
+load_dotenv()
 
 db = SQLAlchemy()
 
 # Initialize App
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secure_smart_bus_secret_key_123' # Change this in production
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secure_smart_bus_secret_key_123')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///smart_bus.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -33,6 +38,15 @@ BUS_LOCATION_CACHE = {}
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=True) 
+    student_id_str = db.Column(db.String(50), unique=True, nullable=True) 
+    phone = db.Column(db.String(20), nullable=True)
+    department = db.Column(db.String(100), nullable=True)
+    year = db.Column(db.String(20), nullable=True)
+    semester = db.Column(db.String(20), nullable=True)
+    address = db.Column(db.Text, nullable=True)
+    stop_location = db.Column(db.String(100), nullable=True)
+    parent_name = db.Column(db.String(100), nullable=True) 
     # Unique ID for the student's primary device (browser fingerprint hash)
     device_id = db.Column(db.String(200), unique=True, nullable=True) 
     parent_email = db.Column(db.String(120), nullable=False)
@@ -79,6 +93,15 @@ class Complaint(db.Model):
     status = db.Column(db.String(20), default='Pending')
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
+class NotificationLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    recipient = db.Column(db.String(120), nullable=False)
+    type = db.Column(db.String(20)) # 'Email' or 'SMS'
+    subject = db.Column(db.String(200))
+    status = db.Column(db.String(20)) # 'Sent' or 'Failed'
+    error_message = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
 # --------------------------
 # Helper Functions
 # --------------------------
@@ -100,35 +123,107 @@ def haversine(lat1, lon1, lat2, lon2):
     r = 6371000 # Radius of earth in meters
     return c * r
 
-def send_notification(to_email, subject, body):
-    """
-    Mock function to send email. 
-    In production, configure SMTP server details.
-    """
-    print(f"--- EMAIL SIMULATION ---")
-    print(f"To: {to_email}")
-    print(f"Subject: {subject}")
-    print(f"Body: {body}")
-    print(f"------------------------")
-    # Real implementation code (commented out for local testing without creds):
-    # sender_email = "your_email@gmail.com"
-    # sender_password = "your_password"
-    # msg = MIMEText(body)
-    # msg['Subject'] = subject
-    # msg['From'] = sender_email
-    # msg['To'] = to_email
-    #    server.login(sender_email, sender_password)
-    #    server.send_message(msg)
+# --------------------------
+# Notification Service Layer
+# --------------------------
 
-def send_parent_sms(student, bus_no, timestamp):
+class NotificationService:
+    @staticmethod
+    def log_notification(recipient, n_type, subject, status, error=None):
+        try:
+            log = NotificationLog(
+                recipient=recipient,
+                type=n_type,
+                subject=subject,
+                status=status,
+                error_message=str(error) if error else None
+            )
+            db.session.add(log)
+            db.session.commit()
+        except Exception as e:
+            print(f"FAILED TO LOG NOTIFICATION: {e}")
+
+    @staticmethod
+    def send_parent_email(student, bus_no, timestamp, date):
+        """
+        Sends a professional SMTP email to the registered parent.
+        """
+        if os.environ.get('EMAIL_MODE', 'False') != 'True':
+            print("[EMAIL MODE OFF] Skipping email dispatch.")
+            return
+
+        to_email = student.parent_email
+        subject = "VET IAS Transport Boarding Confirmation"
+        
+        # Professional Message Template
+        body = f"""Dear Parent,
+
+This is to inform you that your ward {student.name} has successfully boarded Bus {bus_no} at {timestamp} on {date}.
+Attendance has been securely recorded in the system.
+
+Regards,
+VET Institute of Arts and Science
+Transport Administration
+"""
+        
+        # HTML Version for Bonus
+        html_body = f"""
+        <html>
+            <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+                <div style="background-color: #004d40; color: white; padding: 20px; text-align: center;">
+                    <h2 style="margin: 0;">Boarding Confirmation</h2>
+                </div>
+                <div style="padding: 30px;">
+                    <p>Dear Parent,</p>
+                    <p>This is to inform you that your ward <strong>{student.name}</strong> has successfully boarded <strong>Bus {bus_no}</strong> at <strong>{timestamp}</strong> on <strong>{date}</strong>.</p>
+                    <p>Attendance has been securely recorded in our smart transport system using geofence verification.</p>
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #777;">
+                        <p>Regards,<br><strong>VET Institute of Arts and Science</strong><br>Transport Administration</p>
+                    </div>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 0.8em; color: #999;">
+                    <p>This is an automated security notification. Do not reply to this email.</p>
+                </div>
+            </body>
+        </html>
+        """
+
+        try:
+            from email.mime.multipart import MIMEMultipart
+            from email.header import Header
+
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = os.environ.get('SMTP_USER')
+            msg['To'] = to_email
+
+            msg.attach(MIMEText(body, 'plain'))
+            msg.attach(MIMEText(html_body, 'html'))
+
+            server = smtplib.SMTP(os.environ.get('SMTP_SERVER'), int(os.environ.get('SMTP_PORT')))
+            server.starttls()
+            server.login(os.environ.get('SMTP_USER'), os.environ.get('SMTP_PASSWORD'))
+            server.send_message(msg)
+            server.quit()
+
+            print(f"EMAIL SENT SUCCESSFULLY TO: {to_email}")
+            NotificationService.log_notification(to_email, 'Email', subject, 'Sent')
+            return True
+
+        except Exception as e:
+            print(f"EMAIL DISPATCH FAILED: {e}")
+            NotificationService.log_notification(to_email, 'Email', subject, 'Failed', e)
+            return False
+
+def send_parent_sms(student, bus_no, timestamp, date):
     """
     Mock SMS function. In production, use Twilio/Other API.
     """
     target = student.parent_phone or student.parent_email
-    msg = f"Dear Parent, your ward {student.name} has safely boarded Bus No. {bus_no} at {timestamp}. - VET IAS Transport."
+    msg = f"Dear Parent,\n\nThis is to inform you that your ward {student.name} has successfully boarded the college bus (Bus No: {bus_no}) at {timestamp} on {date}.\n\nWe appreciate your trust in our secure transport system."
     print(f"--- SMS SIMULATION ---")
     print(f"To: {target} (SMS)")
-    print(f"Message: {msg}")
+    print(f"Message:\n{msg}")
     print(f"----------------------")
 
 def send_fee_reminder_sms(student):
@@ -158,29 +253,90 @@ def login_required(f):
 def index():
     return render_template('index.html')
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        fullname = request.form.get('fullname')
+        email = request.form.get('email')
+        student_id = request.form.get('studentId')
+        phone = request.form.get('phone')
+        department = request.form.get('department')
+        year = request.form.get('year')
+        semester = request.form.get('semester')
+        address = request.form.get('address')
+        bus_route = request.form.get('busRoute')
+        stop_location = request.form.get('stopLocation')
+        emergency_contact_name = request.form.get('emergencyContactName')
+        parent_phone = request.form.get('parent_phone')
+        parent_email = request.form.get('parent_email')
+        password = request.form.get('password')
+
+        # Check if already exists
+        if Student.query.filter((Student.email == email) | (Student.student_id_str == student_id)).first():
+            return render_template('register.html', error="Email or Student ID already registered.")
+
+        new_student = Student(
+            name=fullname,
+            email=email,
+            student_id_str=student_id,
+            phone=phone,
+            department=department,
+            year=year,
+            semester=semester,
+            address=address,
+            bus_no=bus_route,
+            stop_location=stop_location,
+            parent_phone=parent_phone,
+            parent_name=emergency_contact_name,
+            parent_email=parent_email, 
+            password=generate_password_hash(password)
+        )
+        db.session.add(new_student)
+        db.session.commit()
+        return redirect(url_for('login', success="Account created successfully! Please sign in."))
+
+    return render_template('register.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    success = request.args.get('success')
     if request.method == 'POST':
+        # ... existing login logic ...
         user_type = request.form.get('user_type')
         username = request.form.get('username') # For student, this is ID. For driver/admin, it's name
         password = request.form.get('password')
         device_id = request.form.get('device_id') # From JS
 
         if user_type == 'student':
-            # Support Login by Name or ID
-            student = Student.query.filter((Student.name == username) | (Student.id == username)).first()
-            if student and student.password == password:
+            # Support Login by Name, ID, String ID, or Email
+            student = Student.query.filter(
+                (Student.name == username) | 
+                (Student.id == username) | 
+                (Student.student_id_str == username) |
+                (Student.email == username)
+            ).first()
+            if student and check_password_hash(student.password, password):
                 # Device Binding Check
+                print(f"[DEBUG LOGIN] Student: {student.name}, DB Device: {student.device_id}, Incoming Device: {device_id}")
                 if student.device_id and not SKIP_DEVICE_CHECK:
                     if student.device_id != device_id:
+                        print(f"[DEBUG LOGIN] MISMATCH: DB holds {student.device_id}, client sent {device_id}")
                         return render_template('login.html', error="Login Failed: New device detected. Please use your registered device.")
                 else:
                     # First time login, bind device
                     if not device_id:
                         return render_template('login.html', error="Security Error: Device identity could not be verified. Please enable JavaScript.")
                     
-                    student.device_id = device_id
-                    db.session.commit()
+                    try:
+                        print(f"[DEBUG LOGIN] BINDING NEW DEVICE: {device_id}")
+                        student.device_id = device_id
+                        db.session.commit()
+                        print(f"[DEBUG LOGIN] BINDING SUCCESS")
+                    except Exception as e:
+                        db.session.rollback()
+                        print(f"[DEBUG LOGIN] BINDING FAILED (Collision or Rule): {str(e)}")
+                        # This happens if the device is already bound to another student (Hardware Lock)
+                        return render_template('login.html', error="Locked: This device is already registered to another account. Contact Admin to reset.")
                 
                 session['user_id'] = student.id
                 session['user_type'] = 'student'
@@ -203,7 +359,7 @@ def login():
 
         return render_template('login.html', error="Invalid Credentials")
 
-    return render_template('login.html')
+    return render_template('login.html', success=success)
 
 @app.route('/logout')
 def logout():
@@ -257,10 +413,10 @@ def mark_attendance():
     
     # DEBUG LOGS
     print(f"\n[DEBUG GEO] Student: ({lat}, {lng}) | Master: ({master_lat}, {master_lng})")
-    print(f"[DEBUG GEO] Distance: {distance} meters (Limit: 100m)\n")
+    print(f"[DEBUG GEO] Distance: {distance} meters (Limit: 15m)\n")
 
-    # RELAXED RULE: 100 meters (Temporary for debugging)
-    if distance > 100: 
+    # STRICT RULE: 15 meters
+    if distance > 15: 
          return jsonify({'status': 'error', 'message': f'Geofence Failed! Too far from bus ({int(distance)}m).'}) 
 
     # 4. Device Binding (Zero-Trust Handshake)
@@ -294,8 +450,17 @@ def mark_attendance():
     db.session.add(new_att)
     db.session.commit()
 
-    # 5. Notify Parent (SMS)
-    send_parent_sms(student, bus_no_qr, datetime.datetime.now().strftime('%H:%M'))
+    # 5. Notify Parent (SMS & Email)
+    now = datetime.datetime.now()
+    time_str = now.strftime('%H:%M')
+    date_str = now.strftime('%d-%m-%Y')
+    
+    # SMS Simulation
+    if os.environ.get('SMS_SIMULATION_MODE', 'True') == 'True':
+        send_parent_sms(student, bus_no_qr, time_str, date_str)
+    
+    # Professional Email (New Service Layer)
+    NotificationService.send_parent_email(student, bus_no_qr, time_str, date_str)
 
     return jsonify({'status': 'success', 'message': 'Attendance Marked Successfully'})
 
@@ -436,7 +601,16 @@ def manual_attendance():
     db.session.add(new_att)
     db.session.commit()
     
-    send_parent_sms(student, bus_no, datetime.datetime.now().strftime('%H:%M'))
+    now = datetime.datetime.now()
+    time_str = now.strftime('%H:%M')
+    date_str = now.strftime('%d-%m-%Y')
+
+    # SMS Simulation
+    if os.environ.get('SMS_SIMULATION_MODE', 'True') == 'True':
+        send_parent_sms(student, bus_no, time_str, date_str)
+    
+    # Professional Email (New Service Layer)
+    NotificationService.send_parent_email(student, bus_no, time_str, date_str)
     
     return jsonify({'status': 'success', 'message': f'Added {student.name}'})
 
@@ -496,26 +670,72 @@ def init_db():
 
 @app.route('/api/reset-device/<int:student_id>', methods=['POST'])
 def reset_device(student_id):
-    s = Student.query.get(student_id)
-    if not s:
-        return jsonify({'status': 'error', 'message': 'Student not found'}), 404
-    
-    data = request.json
-    reason = data.get('reason', 'Not specified')
-    
-    old_device = s.device_id
-    s.device_id = None
-    
-    audit = SystemAudit(
-        action=f"Device Reset (Old: {old_device})",
-        admin_name="Admin",
-        student_id=student_id,
-        reason=reason
-    )
-    db.session.add(audit)
-    db.session.commit()
-    
-    return jsonify({'status': 'success', 'message': f'Device reset for {s.name}'})
+    try:
+        s = db.session.get(Student, student_id)
+        if not s:
+            print(f"[DEBUG RESET] Student ID {student_id} not found.")
+            return jsonify({'status': 'error', 'message': 'Student not found'}), 404
+        
+        old_device = s.device_id
+        s.device_id = None
+        
+        # Hard Reset: Nullify device_id in DB
+        db.session.add(s)
+        
+        audit = SystemAudit(
+            action=f"Device Reset (Old: {old_device})",
+            admin_name="Admin",
+            student_id=student_id,
+            reason="Admin Forced Reset"
+        )
+        db.session.add(audit)
+        db.session.commit()
+        
+        print(f"[DEBUG RESET] Device reset successfully for {s.name} (ID: {student_id})")
+        return jsonify({'status': 'success', 'message': f'Device reset successfully for {s.name}'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"[DEBUG RESET] CRITICAL ERROR: {str(e)}")
+        return jsonify({'status': 'error', 'message': f'Internal Error: {str(e)}'}), 500
+
+@app.route('/api/delete-student/<int:student_id>', methods=['POST'])
+@login_required
+def delete_student(student_id):
+    if session.get('user_type') != 'admin':
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+        
+    try:
+        s = db.session.get(Student, student_id)
+        if not s:
+            return jsonify({'status': 'error', 'message': 'Student not found'}), 404
+        
+        student_name = s.name
+        
+        # 1. Delete Related Attendance
+        Attendance.query.filter_by(student_id=student_id).delete()
+        
+        # 2. Delete Related Complaints
+        Complaint.query.filter_by(student_id=student_id).delete()
+        
+        # 3. Log Audit
+        audit = SystemAudit(
+            action=f"Account Deleted: {student_name}",
+            admin_name=session.get('name', 'Admin'),
+            student_id=student_id,
+            reason="Admin Delete Action"
+        )
+        db.session.add(audit)
+        
+        # 4. Delete Student
+        db.session.delete(s)
+        db.session.commit()
+        
+        print(f"[DEBUG DELETE] Student {student_name} deleted successfully.")
+        return jsonify({'status': 'success', 'message': f'Account for {student_name} deleted forever.'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"[DEBUG DELETE] ERROR: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == "__main__":
     with app.app_context():
@@ -528,8 +748,8 @@ if __name__ == "__main__":
                 parent_email='parent@example.com', 
                 parent_phone='9876543210', 
                 bus_no='Bus-10', 
-                password='pass'
+                password=generate_password_hash('pass')
             )
             db.session.add(s1)
             db.session.commit()
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')

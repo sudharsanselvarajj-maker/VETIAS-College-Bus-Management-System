@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Register a new student account on the VET IAS College Bus Management System. Secure device-bound enrollment.">
+    <title>Student Registration — VET IAS Bus System</title>
+    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}?v=4" type="image/x-icon">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            deep: '#004d40',
+                            light: '#f1f8e9',
+                            orange: '#ff9800',
+                            gold: '#ffc107',
+                            dark: '#00241a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'brand': '10px',
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 30px -10px rgba(0, 77, 64, 0.1)',
+                        'glow': '0 0 20px rgba(255, 193, 7, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-glass {
+                @apply bg-white/90 backdrop-blur-md border border-white/20;
+            }
+            .transition-standard {
+                @apply transition-all duration-300 ease-in-out;
+            }
+            .form-section-card {
+                @apply bg-white/50 p-6 rounded-xl border border-slate-100/50 mb-6;
+            }
+        }
+    </style>
+    <style>
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes headShake {
+            0% {
+                transform: translateX(0);
+            }
+
+            6.5% {
+                transform: translateX(-6px) rotateY(-9deg);
+            }
+
+            18.5% {
+                transform: translateX(5px) rotateY(7deg);
+            }
+
+            31.5% {
+                transform: translateX(-3px) rotateY(-5deg);
+            }
+
+            43.5% {
+                transform: translateX(2px) rotateY(3deg);
+            }
+
+            50% {
+                transform: translateX(0);
+            }
+        }
+
+        .animate-head-shake {
+            animation: headShake 0.6s ease-in-out;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen p-4 md:p-6 relative overflow-x-hidden">
+
+    <!-- Background Decor -->
+    <div class="fixed top-0 left-0 w-full h-full -z-10 bg-gradient-to-br from-brand-deep/5 to-transparent"></div>
+    <div class="fixed -top-24 -right-24 w-96 h-96 bg-brand-gold/5 rounded-full blur-3xl -z-10"></div>
+    <div class="fixed -bottom-24 -left-24 w-96 h-96 bg-brand-orange/5 rounded-full blur-3xl -z-10"></div>
+
+    <div class="max-w-4xl mx-auto animate-fade-in-up">
+        <!-- Logo & Header -->
+        <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 text-center md:text-left">
+            <div class="flex items-center gap-4">
+                <a href="/">
+                    <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS Logo"
+                        class="h-12 md:h-16 hover:scale-105 transition-standard">
+                </a>
+                <div>
+                    <h1 class="text-xl font-extrabold text-brand-deep uppercase tracking-tight leading-none">VET IAS
+                    </h1>
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Student Portal</p>
+                </div>
+            </div>
+            <a href="{{ url_for('login') }}"
+                class="text-brand-deep font-bold hover:text-brand-orange transition-standard flex items-center gap-2 text-sm italic">
+                <i class="bi bi-arrow-left"></i> Back to Login
+            </a>
+        </div>
+
+        <!-- Registration Form Card -->
+        <div class="bg-glass p-6 md:p-10 rounded-2xl shadow-soft border border-slate-100">
+            <div class="mb-10 text-center border-b border-slate-100 pb-8">
+                <h2 class="text-3xl font-extrabold text-brand-dark mb-2 uppercase tracking-tighter">Create Account</h2>
+                <p class="text-slate-500 font-medium">Register for secure institutional transportation access</p>
+            </div>
+
+            <form id="registerForm" method="POST" action="{{ url_for('register') }}" novalidate class="space-y-8">
+
+                {% if error %}
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded flex items-start gap-3 animate-head-shake">
+                    <i class="bi bi-exclamation-circle-fill text-red-500 mt-0.5"></i>
+                    <p class="text-red-700 text-sm font-medium">{{ error }}</p>
+                </div>
+                {% endif %}
+
+                {% if success %}
+                <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded flex items-start gap-3">
+                    <i class="bi bi-check-circle-fill text-emerald-500 mt-0.5"></i>
+                    <p class="text-emerald-700 text-sm font-medium">{{ success }}</p>
+                </div>
+                {% endif %}
+
+                <div id="clientMessage" class="hidden p-4 rounded flex items-start gap-3 mb-4"></div>
+
+                <!-- Section: Personal Details -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6 border-l-4 border-brand-orange pl-4">
+                        <i class="bi bi-person-badge text-brand-orange text-xl"></i>
+                        <h3 class="text-lg font-bold text-brand-deep uppercase tracking-tight">Personal Details</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="fullname">Full Name *</label>
+                            <input type="text" id="fullname" name="fullname" required placeholder="Enter your full name"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="studentId">Student ID *</label>
+                            <input type="text" id="studentId" name="studentId" required placeholder="e.g., STU202401"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="email">Institutional Email *</label>
+                            <input type="email" id="email" name="email" required placeholder="name@college.edu"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="phone">Personal Mobile *</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="10-digit mobile"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                            <p class="text-[10px] text-slate-400 mt-1 italic font-medium">For emergency SMS alerts</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="department">Department *</label>
+                            <div class="relative">
+                                <select id="department" name="department" required
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 appearance-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                                    <option value="">Select Department</option>
+                                    <option value="CSE">Computer Science</option>
+                                    <option value="ECE">Electronics</option>
+                                    <option value="IT">Information Technology</option>
+                                    <option value="MECH">Mechanical</option>
+                                    <option value="COMM">Commerce</option>
+                                    <option value="ARTS">Arts & Science</option>
+                                </select>
+                                <i
+                                    class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Academic & Transport -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div>
+                        <div class="flex items-center gap-3 mb-6 border-l-4 border-brand-orange pl-4">
+                            <i class="bi bi-mortarboard text-brand-orange text-xl"></i>
+                            <h3 class="text-lg font-bold text-brand-deep uppercase tracking-tight">Academic Info</h3>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                    for="yearSemester">Year & Semester *</label>
+                                <div class="relative">
+                                    <select id="yearSemester" name="yearSemester" required
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 appearance-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                                        <option value="">Select Year / Sem</option>
+                                        <option value="1-1">1st Year | Sem 1</option>
+                                        <option value="1-2">1st Year | Sem 2</option>
+                                        <option value="2-3">2nd Year | Sem 3</option>
+                                        <option value="2-4">2nd Year | Sem 4</option>
+                                        <option value="3-5">3rd Year | Sem 5</option>
+                                        <option value="3-6">3rd Year | Sem 6</option>
+                                    </select>
+                                    <i
+                                        class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                </div>
+                                <input type="hidden" id="yearOnly" name="year">
+                                <input type="hidden" id="semesterOnly" name="semester">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                    for="address">Residential Address *</label>
+                                <textarea id="address" name="address" required placeholder="Full home address"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard min-h-[100px]"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-3 mb-6 border-l-4 border-brand-orange pl-4">
+                            <i class="bi bi-bus-front text-brand-orange text-xl"></i>
+                            <h3 class="text-lg font-bold text-brand-deep uppercase tracking-tight">Transport</h3>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                    for="busRoute">Bus Route *</label>
+                                <div class="relative">
+                                    <select id="busRoute" name="busRoute" required
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 appearance-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                                        <option value="">Select Route</option>
+                                        <option value="Bus-10">Route 10 | Main City - Sector 5</option>
+                                        <option value="Bus-20">Route 20 | Suburbs - North Gate</option>
+                                        <option value="Bus-30">Route 30 | Industrial Area - West</option>
+                                    </select>
+                                    <i
+                                        class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                    for="stopLocation">Boarding Stop *</label>
+                                <input type="text" id="stopLocation" name="stopLocation" required
+                                    placeholder="Nearest landmark"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Parent Contact -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6 border-l-4 border-brand-orange pl-4">
+                        <i class="bi bi-people text-brand-orange text-xl"></i>
+                        <h3 class="text-lg font-bold text-brand-deep uppercase tracking-tight">Parent / Guardian</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="emergencyContactName">Guardian Name *</label>
+                            <input type="text" id="emergencyContactName" name="emergencyContactName" required
+                                placeholder="Full name of guardian"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="parent_phone">Guardian Mobile *</label>
+                            <input type="tel" id="parent_phone" name="parent_phone" required
+                                placeholder="10-digit mobile"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="parent_email">Guardian Email *</label>
+                            <input type="email" id="parent_email" name="parent_email" required
+                                placeholder="parent@example.com"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Security -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6 border-l-4 border-brand-orange pl-4">
+                        <i class="bi bi-shield-lock text-brand-orange text-xl"></i>
+                        <h3 class="text-lg font-bold text-brand-deep uppercase tracking-tight">Account Security</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="password">Create Password *</label>
+                            <div class="relative">
+                                <input type="password" id="password" name="password" required minlength="6"
+                                    placeholder="Min. 6 characters"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 pr-12 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                                <button type="button" id="togglePassword"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-orange transition-standard">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
+                            </div>
+                            <div class="mt-2 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div id="pwBar" class="h-full w-0 bg-slate-300 transition-all duration-500"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                                for="confirmPassword">Confirm Password *</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required
+                                placeholder="Repeat password"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-brand px-4 py-3 text-slate-700 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold outline-none transition-standard">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Terms -->
+                <div class="bg-brand-light/30 border border-brand-deep/5 p-6 rounded-xl flex gap-4">
+                    <input type="checkbox" id="terms" name="terms" required class="w-5 h-5 mt-1 accent-brand-deep">
+                    <p class="text-sm text-slate-600 leading-relaxed font-medium">
+                        I understand that this account will be bound to my primary device for
+                        <span class="text-brand-deep font-bold border-b border-brand-deep/20 cursor-help">Security
+                            Protocol Verification</span>.
+                    </p>
+                </div>
+
+                <!-- Actions -->
+                <div
+                    class="pt-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <p class="text-slate-500 text-sm font-medium">
+                        Already have an account?
+                        <a href="{{ url_for('login') }}"
+                            class="text-brand-deep font-bold hover:text-brand-orange transition-standard">Sign in
+                            here</a>
+                    </p>
+                    <button type="submit" id="submitBtn"
+                        class="w-full md:w-auto bg-gradient-to-r from-brand-gold to-brand-orange text-white font-bold px-12 py-4 rounded-brand shadow-lg hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-standard flex items-center justify-center gap-2">
+                        Create My Account
+                        <i class="bi bi-check2-circle"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center py-10 text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+            <p>© <span id="year"></span> VET IAS Transportation Division | Security Protocol V4.2.0</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const alertBox = document.getElementById('clientMessage');
+        const passwordInput = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const toggleBtn = document.getElementById('togglePassword');
+        const pwBar = document.getElementById('pwBar');
+
+        const yearSemesterSelect = document.getElementById('yearSemester');
+        const yearOnlyInput = document.getElementById('yearOnly');
+        const semesterOnlyInput = document.getElementById('semesterOnly');
+
+        // Combined selection logic
+        yearSemesterSelect?.addEventListener('change', () => {
+            const v = yearSemesterSelect.value;
+            if (!v) {
+                yearOnlyInput.value = '';
+                semesterOnlyInput.value = '';
+                return;
+            }
+            const [yr, sem] = v.split('-');
+            yearOnlyInput.value = yr;
+            semesterOnlyInput.value = sem;
+        });
+
+        // Toggle visibility
+        toggleBtn?.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            confirmPassword.setAttribute('type', type);
+
+            const icon = this.querySelector('i');
+            if (type === 'text') {
+                icon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+            } else {
+                icon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+            }
+        });
+
+        // Strength meter
+        passwordInput?.addEventListener('input', () => {
+            const val = passwordInput.value;
+            let score = 0;
+            if (val.length >= 6) score++;
+            if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            pwBar.className = 'h-full transition-all duration-500 ';
+            if (score === 0) { pwBar.style.width = '0%'; pwBar.classList.add('bg-slate-300'); }
+            else if (score === 1) { pwBar.style.width = '33%'; pwBar.classList.add('bg-red-500'); }
+            else if (score === 2) { pwBar.style.width = '66%'; pwBar.classList.add('bg-amber-500'); }
+            else if (score >= 3) { pwBar.style.width = '100%'; pwBar.classList.add('bg-emerald-500'); }
+        });
+
+        // Validation & Feedback
+        const showAlert = (msg, type = 'error') => {
+            alertBox.innerHTML = `
+                <i class="bi bi-${type === 'error' ? 'exclamation-circle-fill' : 'check-circle-fill'} ${type === 'error' ? 'text-red-500' : 'text-emerald-500'} mt-0.5"></i>
+                <p class="${type === 'error' ? 'text-red-700' : 'text-emerald-700'} text-sm font-medium">${msg}</p>
+            `;
+            alertBox.className = `p-4 rounded flex items-start gap-3 mb-6 ${type === 'error' ? 'bg-red-50 border-l-4 border-red-500 animate-head-shake' : 'bg-emerald-50 border-l-4 border-emerald-500'}`;
+            alertBox.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        form?.addEventListener('submit', (e) => {
+            // Sync hidden inputs
+            yearSemesterSelect?.dispatchEvent(new Event('change'));
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                e.preventDefault();
+                return;
+            }
+
+            if (passwordInput.value !== confirmPassword.value) {
+                showAlert('Passwords do not match. Please verify your password entry.');
+                e.preventDefault();
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing Registration...
+            `;
+        });
+
+        // Auto-restrict numeric inputs
+        document.querySelectorAll('input[type="tel"]').forEach(input => {
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/[^0-9]/g, '').slice(0, 10);
+            });
+        });
+    </script>
+
+
+</body>
+
+</html>

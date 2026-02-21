@@ -1,322 +1,281 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description"
+        content="VET IAS Bus System Admin Portal — manage students, device security, attendance logs, and fee alerts.">
     <title>Admin Portal | VET IAS Bus System</title>
-    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}?v=4" type="image/x-icon">
 
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            deep: '#004d40',
+                            light: '#f1f8e9',
+                            orange: '#ff9800',
+                            gold: '#ffc107',
+                            dark: '#00241a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'brand': '12px',
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 30px -10px rgba(0, 77, 64, 0.08)',
+                        'glow': '0 0 20px rgba(255, 193, 7, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --accent: #4895ef;
-            --success: #4cc9f0;
-            --bg-light: #f8f9fc;
-            --text-dark: #2b2d42;
-            --text-muted: #8d99ae;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --border-color: rgba(0, 0, 0, 0.05);
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
-        }
-
-        /* Glass Navbar */
-        .navbar {
-            background: var(--glass-bg) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-            transition: all 0.3s ease;
-        }
-
-        .brand-text {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 1.25rem;
-            letter-spacing: -0.5px;
-        }
-
-        /* Admin Navbar Refinement */
-        .admin-nav-btn {
-            color: var(--text-dark) !important;
-            font-weight: 600;
-            padding: 0.6rem 1.2rem !important;
-            border-radius: 12px;
-            margin: 0 0.2rem;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            font-size: 0.95rem;
-        }
-
-        .admin-nav-btn:hover {
-            background: rgba(67, 97, 238, 0.08);
-            color: var(--primary) !important;
-        }
-
-        .admin-nav-btn.active {
-            background: var(--primary) !important;
-            color: white !important;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-        }
-
-        /* Layout */
-        main {
-            padding-top: 100px !important;
-        }
-
-        /* Semantic Cards */
-        .card {
-            border: none;
-            border-radius: 24px;
-            background: white;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-        }
-
-        /* Table Aesthetics */
-        .table thead th {
-            background: var(--bg-light);
-            border: none;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .table tbody td {
-            padding: 1.25rem 1.5rem;
-            vertical-align: middle;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-        }
-
-        /* Professional Stat Cards */
-        .stat-icon {
-            width: 54px;
-            height: 54px;
-            background: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-        }
-
-        /* Buttons & Badges */
-        .btn-action {
-            border-radius: 10px;
-            padding: 0.5rem 1rem;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-        }
-
-        .badge-pill-custom {
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        /* Search Input Styling */
-        .search-container {
-            position: relative;
-            max-width: 300px;
-        }
-
-        .search-container i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #8d99ae;
-        }
-
-        .search-container .form-control {
-            padding-left: 35px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            background: white;
-        }
-
-        .search-container .form-control:focus {
-            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
-            border-color: var(--primary);
-        }
-
-        /* Animation */
-        section {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
+    <style type="text/tailwindcss">
+        @layer base {
+            html {
+                scroll-padding-top: 80px;
             }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
+        }
+        @layer components {
+            .nav-btn {
+                @apply flex items-center gap-3 px-5 py-3 rounded-brand font-semibold text-slate-500 hover:bg-brand-deep/5 hover:text-brand-deep transition-all duration-300;
+            }
+            .nav-btn.active {
+                @apply bg-brand-deep text-white shadow-lg shadow-brand-deep/20;
+            }
+            .stat-card {
+                @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+            }
+            .action-btn {
+                @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all duration-200 active:scale-95;
+            }
+            .table-cell {
+                @apply px-6 py-4 text-sm text-slate-600 font-medium whitespace-nowrap;
+            }
+        }
+        @layer utilities {
+            .bg-glass {
+                @apply bg-white/80 backdrop-blur-md border border-white/20;
             }
         }
     </style>
 </head>
 
-<body>
-    <!-- Message Container -->
-    <div id="toast-container" style="position: fixed; top: 100px; right: 20px; z-index: 9999;"></div>
+<body class="bg-[#fcfdfe] text-slate-800 font-sans min-h-screen">
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg fixed-top shadow-sm">
-        <div class="container">
-            <header class="d-flex align-items-center">
-                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS"
-                    style="height: 42px; margin-right: 12px;">
-                <span class="brand-text">Admin Control Panel</span>
-            </header>
+    <!-- Background Accents -->
+    <div
+        class="fixed top-0 left-0 w-full h-full -z-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-brand-gold/5 via-transparent to-transparent">
+    </div>
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-                <i class="bi bi-list fs-1 text-primary"></i>
-            </button>
+    <!-- Toast Service -->
+    <div id="toast-container" class="fixed top-24 right-6 z-50 flex flex-col gap-3"></div>
 
-            <div class="collapse navbar-collapse" id="navMenu">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-1">
-                    <li class="nav-item">
-                        <button class="admin-nav-btn active" data-section="dashboard">
-                            <i class="bi bi-speedometer2 me-2"></i> Summary
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="admin-nav-btn" data-section="students">
-                            <i class="bi bi-mortarboard-fill me-2"></i> Students
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="admin-nav-btn" data-section="devices">
-                            <i class="bi bi-shield-lock-fill me-2"></i> Devices
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="admin-nav-btn" data-section="attendance">
-                            <i class="bi bi-journal-check me-2"></i> Logs
-                        </button>
-                    </li>
-                    <li class="nav-item ms-lg-3">
-                        <a href="/logout" class="btn btn-outline-danger btn-sm px-4 rounded-pill fw-bold">Logout</a>
-                    </li>
-                </ul>
+    <!-- Top Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-40 bg-glass border-b border-slate-100">
+        <div class="max-w-[1440px] mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS" class="h-10">
+                <div>
+                    <h1 class="text-sm font-black text-brand-deep uppercase leading-none">Admin Control</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Bus Management System
+                    </p>
+                </div>
+            </div>
+
+            <!-- Desktop Tabs -->
+            <div class="hidden lg:flex items-center gap-2 bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50">
+                <button class="nav-btn active" onclick="showSection('dashboard')" data-section="dashboard">
+                    <i class="bi bi-grid-1x2-fill text-lg"></i>
+                    <span>Summary</span>
+                </button>
+                <button class="nav-btn" onclick="showSection('students')" data-section="students">
+                    <i class="bi bi-mortarboard-fill text-lg"></i>
+                    <span>Students</span>
+                </button>
+                <button class="nav-btn" onclick="showSection('devices')" data-section="devices">
+                    <i class="bi bi-shield-lock-fill text-lg"></i>
+                    <span>Security</span>
+                </button>
+                <button class="nav-btn" onclick="showSection('attendance')" data-section="attendance">
+                    <i class="bi bi-clipboard-data-fill text-lg"></i>
+                    <span>Audit Logs</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex flex-col items-end mr-2">
+                    <span class="text-xs font-bold text-slate-600">Administrator</span>
+                    <span class="text-[10px] text-emerald-500 font-bold uppercase">System Master</span>
+                </div>
+                <a href="/logout"
+                    class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-5 py-2.5 rounded-xl transition-all active:scale-95 text-sm flex items-center gap-2">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Logout
+                </a>
+                <button
+                    class="lg:hidden text-2xl p-2 focus:outline-none focus:ring-2 focus:ring-brand-deep/20 rounded-lg"
+                    id="mobile-menu-toggle" aria-label="Open navigation menu" aria-expanded="false"
+                    aria-controls="mobile-menu">
+                    <i class="bi bi-list"></i>
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main class="container">
+    <!-- Traditional Mobile Dropdown -->
+    <div id="mobile-menu"
+        class="lg:hidden fixed top-20 left-0 w-full bg-white/95 backdrop-blur-xl z-[100] border-b border-slate-100 shadow-2xl opacity-0 pointer-events-none -translate-y-4 transition-all duration-300 ease-out"
+        role="dialog" aria-modal="true" aria-label="Administrative Navigation Menu" aria-hidden="true">
+
+        <nav class="flex flex-col p-6 gap-2">
+            <button
+                class="mobile-nav-btn w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none"
+                onclick="showSection('dashboard')" data-section="dashboard">
+                <i class="bi bi-grid-1x2-fill"></i> <span>Summary</span>
+            </button>
+            <button
+                class="mobile-nav-btn w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none"
+                onclick="showSection('students')" data-section="students">
+                <i class="bi bi-mortarboard-fill"></i> <span>Students</span>
+            </button>
+            <button
+                class="mobile-nav-btn w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none"
+                onclick="showSection('devices')" data-section="devices">
+                <i class="bi bi-shield-lock-fill"></i> <span>Security</span>
+            </button>
+            <button
+                class="mobile-nav-btn w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none"
+                onclick="showSection('attendance')" data-section="attendance">
+                <i class="bi bi-clipboard-data-fill"></i> <span>Audit Logs</span>
+            </button>
+            <div class="h-px bg-slate-100 my-2"></div>
+            <a href="/logout"
+                class="w-full text-red-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-red-50 transition-colors focus:outline-none">
+                <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Content Wrap -->
+    <main class="max-w-[1440px] mx-auto px-4 md:px-6 pt-28 md:pt-32 pb-20 overflow-x-hidden">
 
         <!-- DASHBOARD SECTION -->
-        <section id="dashboard">
-            <div class="row mb-5">
-                <div class="col-12">
-                    <h1 class="display-6 fw-bold text-dark">System Summary</h1>
-                    <p class="text-muted">Overview of daily operations and student metrics.</p>
+        <section id="dashboard" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="mb-10">
+                <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">System
+                    Overview</h2>
+                <p class="text-slate-500 font-medium mt-2">Real-time metrics and daily operational health.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Enrollment</p>
+                            <h3 class="text-4xl font-black text-brand-deep">{{ students|length }}</h3>
+                            <p class="text-[10px] text-brand-orange font-bold mt-2 italic flex items-center gap-1">
+                                <i class="bi bi-people"></i> Active Users
+                            </p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shadow-inner border border-emerald-100/50">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Check-ins Today
+                            </p>
+                            <h3 class="text-4xl font-black text-brand-deep">{{ logs|length }}</h3>
+                            <p class="text-[10px] text-emerald-500 font-bold mt-2 italic flex items-center gap-1">
+                                <i class="bi bi-check-all"></i> Verified Boards
+                            </p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-inner border border-blue-100/50">
+                            <i class="bi bi-qr-code-scan"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">System Alerts</p>
+                            <h3 class="text-4xl font-black text-brand-deep">{{ complaints|length }}</h3>
+                            <p class="text-[10px] text-red-500 font-bold mt-2 italic flex items-center gap-1">
+                                <i class="bi bi-exclamation-triangle"></i> Pending Tasks
+                            </p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-inner border border-orange-100/50">
+                            <i class="bi bi-megaphone-fill"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="row g-4 mb-5">
-                <div class="col-md-4">
-                    <article class="card h-100 p-4 border-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-uppercase text-muted fw-bold mb-1 small">Total Enrollment</h6>
-                                <span class="h2 fw-bold d-block">{{ students|length }}</span>
-                                <small class="text-primary fw-medium">Active Students</small>
-                            </div>
-                            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-                        </div>
-                    </article>
+            <!-- Recent Feedback -->
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+                <div class="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                    <h4 class="font-extrabold text-brand-deep uppercase tracking-tighter text-sm">Recent System Feedback
+                    </h4>
+                    <span
+                        class="text-[9px] font-black bg-brand-gold text-brand-deep px-3 py-1 rounded-full uppercase tracking-widest">Live
+                        Engine</span>
                 </div>
-                <div class="col-md-4">
-                    <article class="card h-100 p-4 border-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-uppercase text-muted fw-bold mb-1 small">Attendance (Today)</h6>
-                                <span class="h2 fw-bold d-block text-success">{{ logs|length }}</span>
-                                <small class="text-success fw-medium">Verified check-ins</small>
-                            </div>
-                            <div class="stat-icon" style="background:rgba(46,204,113,0.1); color:#2ecc71"><i
-                                    class="bi bi-check-circle-fill"></i></div>
-                        </div>
-                    </article>
-                </div>
-                <div class="col-md-4">
-                    <article class="card h-100 p-4 border-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-uppercase text-muted fw-bold mb-1 small">System Alerts</h6>
-                                <span class="h2 fw-bold d-block text-danger">{{ complaints|length }}</span>
-                                <small class="text-danger fw-medium">Pending Complaints</small>
-                            </div>
-                            <div class="stat-icon" style="background:rgba(231,76,60,0.1); color:#e74c3c"><i
-                                    class="bi bi-exclamation-triangle-fill"></i></div>
-                        </div>
-                    </article>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm overflow-hidden">
-                <header class="card-header bg-transparent py-3 px-4 border-0 mt-2">
-                    <h3 class="h5 fw-bold mb-0">Recent System Feedback</h3>
-                </header>
-                <div class="table-responsive">
-                    <table class="table hover">
-                        <thead class="table-light">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50/50">
                             <tr>
-                                <th>Category</th>
-                                <th>Description</th>
-                                <th class="text-center">Status</th>
+                                <th
+                                    class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Category</th>
+                                <th
+                                    class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Detail</th>
+                                <th
+                                    class="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Status</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-50">
                             {% if complaints %}
                             {% for c in complaints[:5] %}
-                            <tr>
-                                <td class="fw-bold text-dark">{{ c.subject }}</td>
-                                <td class="text-muted">{{ c.message[:60] }}...</td>
-                                <td class="text-center"><span
-                                        class="badge rounded-pill text-bg-warning px-3 py-2">Open</span></td>
+                            <tr class="hover:bg-slate-50/20 transition-colors">
+                                <td class="table-cell font-bold text-brand-dark">{{ c.subject }}</td>
+                                <td class="table-cell italic text-slate-400">"{{ c.message[:80] }}..."</td>
+                                <td class="table-cell text-center">
+                                    <span
+                                        class="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-wider border border-amber-100/50">Open</span>
+                                </td>
                             </tr>
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="3" class="text-center py-5 text-muted">No feedback recorded yet.</td>
+                                <td colspan="3"
+                                    class="px-6 py-16 text-center text-slate-300 font-bold italic tracking-wide">No user
+                                    feedback entries available.</td>
                             </tr>
                             {% endif %}
                         </tbody>
@@ -326,50 +285,96 @@
         </section>
 
         <!-- STUDENTS SECTION -->
-        <section id="students" class="d-none">
-            <header class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <section id="students" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
                 <div>
-                    <h2 class="fw-bold mb-1">Student Database</h2>
-                    <p class="text-muted mb-0 small">Manage fee eligibility and route assignments.</p>
+                    <h2
+                        class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none text-brand-deep">
+                        Student Registry</h2>
+                    <p class="text-slate-500 font-medium mt-2">Manage eligibility, routes, and personal data.</p>
                 </div>
-                <div class="d-flex gap-2 align-items-center">
-                    <div class="search-container">
-                        <i class="bi bi-search"></i>
-                        <input type="text" id="searchStudent" class="form-control form-control-sm"
-                            placeholder="Search name or bus...">
+                <div class="flex flex-wrap md:flex-nowrap items-center gap-4 w-full md:w-auto">
+                    <div class="relative group w-full md:w-80">
+                        <i
+                            class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand-orange"></i>
+                        <input type="text" id="searchStudent" placeholder="Filter Registry..."
+                            class="pl-12 pr-6 py-3.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold transition-all w-full shadow-soft font-medium">
                     </div>
-                    <button id="notifyDefaultersBtn" class="btn btn-warning btn-sm fw-bold">
-                        <i class="bi bi-bell-fill me-1"></i> Notify Defaulters
+                    <button id="notifyDefaultersBtn"
+                        class="w-full md:w-auto bg-brand-orange text-white font-black text-[10px] uppercase tracking-[0.2em] px-8 py-4 rounded-xl hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center md:justify-start gap-3">
+                        <i class="bi bi-broadcast"></i>
+                        Broadcast Alerts
                     </button>
                 </div>
-            </header>
-            <div class="card border-0 shadow-sm">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50/50">
                             <tr>
-                                <th>FullName</th>
-                                <th>Email</th>
-                                <th>Mobile No</th>
-                                <th>Assigned Bus</th>
-                                <th class="text-end">Fee Status</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Student Profile</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Guardian Contact</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Transport Node</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-right">
+                                    Fee Status</th>
                             </tr>
                         </thead>
-                        <tbody id="student-table-body">
+                        <tbody id="student-table-body" class="divide-y divide-slate-50">
                             {% for s in students %}
-                            <tr>
-                                <td class="fw-bold">{{ s.name }}</td>
-                                <td class="small text-muted">{{ s.parent_email }}</td>
-                                <td class="small text-muted">{{ s.parent_phone or '—' }}</td>
-                                <td><span class="badge text-bg-light border px-3 py-2">{{ s.bus_no }}</span></td>
-                                <td class="text-end">
-                                    <!-- Cycles Eligibility -->
-                                    {% set fee_class = 'text-bg-warning' %}
-                                    {% if s.fee_status == 'Paid' %}{% set fee_class = 'text-bg-success' %}
-                                    {% elif s.fee_status == 'Unpaid' %}{% set fee_class = 'text-bg-danger' %}{% endif %}
+                            <tr class="hover:bg-slate-50/30 transition-colors group">
+                                <td class="table-cell">
+                                    <div class="flex items-center gap-4">
+                                        <div
+                                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-deep/5 to-brand-deep/20 text-brand-deep flex items-center justify-center font-black text-sm border border-brand-deep/10">
+                                            {{ s.name[:1] }}
+                                        </div>
+                                        <div>
+                                            <div
+                                                class="font-bold text-brand-dark group-hover:text-brand-orange transition-colors">
+                                                {{ s.name }}</div>
+                                            <div class="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                                                {{ s.id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="table-cell">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">{{ s.parent_email
+                                        }}</div>
+                                    <div class="text-xs text-slate-600 font-bold italic">{{ s.parent_phone or 'N/A' }}
+                                    </div>
+                                </td>
+                                <td class="table-cell">
+                                    <span
+                                        class="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-600 font-black text-[10px] border border-slate-200 uppercase tracking-tighter">
+                                        {{ s.bus_no }}
+                                    </span>
+                                </td>
+                                <td class="table-cell text-right">
+                                    {% set fee_status = s.fee_status|lower %}
+                                    {% if fee_status == 'paid' %}
                                     <a href="/api/toggle-fee/{{ s.id }}"
-                                        class="badge-pill-custom border-0 text-decoration-none bg-opacity-10 py-2 px-3 {{ fee_class }}">
+                                        class="fee-badge action-btn bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100">
+                                        <i class="bi bi-wallet2 text-xs"></i> Verified Paid
                                     </a>
+                                    {% elif fee_status == 'unpaid' %}
+                                    <a href="/api/toggle-fee/{{ s.id }}"
+                                        class="fee-badge action-btn bg-red-50 text-red-600 border border-red-100 hover:bg-red-100">
+                                        <i class="bi bi-cash-stack text-xs"></i> Pending Unpaid
+                                    </a>
+                                    {% else %}
+                                    <a href="/api/toggle-fee/{{ s.id }}"
+                                        class="fee-badge action-btn bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100">
+                                        <i class="bi bi-hourglass-split text-xs"></i> {{ s.fee_status }}
+                                    </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -380,41 +385,69 @@
         </section>
 
         <!-- DEVICES SECTION -->
-        <section id="devices" class="d-none">
-            <header class="mb-4">
-                <h2 class="fw-bold">Security & Device Binding</h2>
-                <p class="text-muted">Administrative tools to reset student phone links.</p>
-            </header>
-            <div class="card border-0 shadow-sm">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
+        <section id="devices" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="mb-10">
+                <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">Security
+                    Infrastructure</h2>
+                <p class="text-slate-500 font-medium mt-2">Manage hardware-level identity and device binding.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50/50">
                             <tr>
-                                <th>Student</th>
-                                <th>Active Hardware ID</th>
-                                <th>Security State</th>
-                                <th class="text-end">Security Action</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Student Node</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Authorized Hardware ID</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Control State</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-right">
+                                    Security Overrides</th>
                             </tr>
                         </thead>
-                        <tbody id="device-management-body">
+                        <tbody class="divide-y divide-slate-50">
                             {% for s in students %}
-                            <tr>
-                                <td class="fw-bold">{{ s.name }}</td>
-                                <td><code class="text-muted">{{ s.device_id or 'IDENTITY_NOT_CAPTURED' }}</code></td>
-                                <td>
+                            <tr class="hover:bg-slate-50/20 transition-colors">
+                                <td class="table-cell font-bold text-brand-dark">{{ s.name }}</td>
+                                <td class="table-cell">
+                                    <code
+                                        class="bg-slate-100/50 px-3 py-2 rounded-lg text-[9px] font-mono border border-slate-200/30 text-slate-500 select-all">
+                                        {{ s.device_id or 'IDENTITY_NOT_SYNCED' }}
+                                    </code>
+                                </td>
+                                <td class="table-cell">
                                     {% if s.device_id %}
                                     <span
-                                        class="badge-pill-custom text-bg-primary bg-opacity-10 text-primary">HARDWARE_LOCKED</span>
+                                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-tight border border-emerald-100/50">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        SECURE_SYNCED
+                                    </span>
                                     {% else %}
                                     <span
-                                        class="badge-pill-custom text-bg-warning bg-opacity-10 text-warning">WAITING_HANDSHAKE</span>
+                                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase italic border border-amber-100/50">
+                                        WAITING_HANDSHAKE
+                                    </span>
                                     {% endif %}
                                 </td>
-                                <td class="text-end">
-                                    <button type="button" class="btn btn-action btn-danger btn-sm reset-device-trigger"
-                                        data-id="{{ s.id }}" data-name="{{ s.name }}">
-                                        <i class="bi bi-shield-slash-fill me-1"></i> Reset Device
-                                    </button>
+                                <td class="table-cell text-right">
+                                    <div class="flex justify-end gap-3">
+                                        <button
+                                            class="action-btn bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl px-6 reset-device-trigger shadow-sm"
+                                            data-id="{{ s.id }}" data-name="{{ s.name }}">
+                                            <i class="bi bi-shield-lock-fill"></i> Reset Device
+                                        </button>
+                                        <button
+                                            class="action-btn bg-red-100 text-red-600 hover:bg-red-200 rounded-xl px-4 delete-student-trigger border border-red-200"
+                                            data-id="{{ s.id }}" data-name="{{ s.name }}">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -424,42 +457,79 @@
             </div>
         </section>
 
-        <!-- ATTENDANCE SECTION -->
-        <section id="attendance" class="d-none">
-            <header class="mb-4">
-                <h2 class="fw-bold">Attendance Analytics Log</h2>
-                <p class="text-muted">Chronological audit of student boarding events.</p>
-            </header>
-            <div class="card border-0 shadow-sm">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
+        <!-- ATTENDANCE LOGS -->
+        <section id="attendance" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="mb-10">
+                <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">Immutable
+                    Audit Log</h2>
+                <p class="text-slate-500 font-medium mt-2">Chronological data stream of all transportation events.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50/50">
                             <tr>
-                                <th>Date & Time</th>
-                                <th>Student</th>
-                                <th>Bus</th>
-                                <th>Verification</th>
-                                <th>Method</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Event Timestamp</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Subject Student</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Transport Node</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-left">
+                                    Verification Meta</th>
+                                <th
+                                    class="table-cell font-bold text-[10px] text-slate-400 uppercase tracking-widest text-right">
+                                    Access Link</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-50">
                             {% for log in logs %}
-                            <tr>
-                                <td class="text-muted small">{{ log.timestamp.strftime('%d %b %Y, %H:%M') }}</td>
-                                <td class="fw-bold">{{ log.student_name }}</td>
-                                <td><span class="badge text-bg-light border">{{ log.bus_no }}</span></td>
-                                <td>
+                            <tr class="hover:bg-slate-50/20 transition-colors">
+                                <td class="table-cell text-[11px] font-bold text-slate-400">{{
+                                    log.timestamp.strftime('%d %b %Y | %H:%M:%S') }}</td>
+                                <td
+                                    class="table-cell font-black text-brand-dark uppercase tracking-tight flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    {{ log.student_name }}
+                                </td>
+                                <td class="table-cell">
+                                    <span
+                                        class="px-2 py-1 bg-brand-light text-brand-deep font-black text-[9px] rounded-lg border border-brand-deep/10 uppercase italic">
+                                        {{ log.bus_no }}
+                                    </span>
+                                </td>
+                                <td class="table-cell">
                                     {% if log.loc_verified %}
-                                    <span class="text-success fw-bold"><i class="bi bi-geo-alt-fill"></i>
-                                        GEO_SUCCESS</span>
+                                    <div
+                                        class="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-wide">
+                                        <i class="bi bi-geo-fill"></i> GEOLOCATION_AUTH
+                                    </div>
                                     {% else %}
-                                    <span class="text-warning fw-bold"><i class="bi bi-exclamation-circle-fill"></i>
-                                        MANUAL_BYPASS</span>
+                                    <div
+                                        class="flex items-center gap-2 text-amber-500 font-black text-[9px] uppercase tracking-wide italic">
+                                        <i class="bi bi-key-fill"></i> MANUAL_BYPASS
+                                    </div>
                                     {% endif %}
                                 </td>
-                                <td><small class="text-uppercase fw-bold text-muted">{{ log.method }}</small></td>
+                                <td class="table-cell text-right">
+                                    <span
+                                        class="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] italic">{{
+                                        log.method }}</span>
+                                </td>
                             </tr>
                             {% endfor %}
+                            {% if not logs %}
+                            <tr>
+                                <td colspan="5"
+                                    class="px-6 py-24 text-center text-slate-300 font-bold italic uppercase tracking-widest">
+                                    No audit data captured in the current cycle.</td>
+                            </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -468,117 +538,138 @@
 
     </main>
 
-    <footer class="mt-5 py-5 border-top bg-white">
-        <div class="container text-center">
-            <p class="text-muted small mb-0">&copy; 2026 VET IAS College Transport Authority. Professional Grade
-                Security.</p>
+    <!-- Professional Footer -->
+    <footer class="bg-white border-t border-slate-100 py-16 mt-auto">
+        <div class="max-w-[1440px] mx-auto px-6 text-center">
+            <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS"
+                class="h-10 mx-auto mb-8 opacity-20 grayscale brightness-150">
+            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] mb-4">
+                VET IAS College Transportation Division &copy; 2026
+            </p>
+            <div
+                class="flex items-center justify-center gap-6 text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                <span class="flex items-center gap-2"><i class="bi bi-shield-check text-brand-deep"></i> Enterprise
+                    Grade</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                <span class="flex items-center gap-2"><i class="bi bi-cpu text-brand-deep"></i> Protocol V4.2.0</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                <span class="flex items-center gap-2"><i class="bi bi-hdd-network text-brand-deep"></i> Node:
+                    SECURE-01</span>
+            </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // -- Navigation Logic --
-            const navLinks = document.querySelectorAll('.admin-nav-btn');
+
+            // Notification Engine
+            const showToast = (message, type = 'success') => {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const colorClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-brand-deep';
+
+                toast.className = `${colorClass} text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-right-10 duration-500 border border-white/10`;
+                toast.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="bi bi-${type === 'success' ? 'patch-check' : 'shield-exclamation'}-fill text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-black text-xs uppercase tracking-widest leading-none mb-1">${type === 'success' ? 'Operation Success' : 'Security Alert'}</p>
+                        <p class="font-medium text-xs opacity-90 tracking-tight">${message}</p>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('animate-out', 'fade-out', 'slide-out-to-right-10');
+                    setTimeout(() => toast.remove(), 500);
+                }, 4000);
+            };
+
+            // Global Tab Switcher (Renamed and hardened per reference)
+            const navLinks = document.querySelectorAll('.nav-btn, .mobile-nav-btn');
             const sections = document.querySelectorAll('main section');
 
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    const targetSection = link.getAttribute('data-section');
+            window.showSection = (targetId) => {
+                localStorage.setItem('admin_last_tab', targetId);
 
-                    // Update Active Link
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    link.classList.add('active');
+                // Hide all sections
+                sections.forEach(s => s.classList.add('hidden'));
 
-                    // Switch Section
-                    sections.forEach(s => s.classList.add('d-none'));
-                    document.getElementById(targetSection).classList.remove('d-none');
+                // Show target section
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.classList.remove('hidden');
+                }
 
-                    // Auto-Close Mobile Menu (Robust)
-                    const navMenu = document.getElementById('navMenu');
-                    if (navMenu.classList.contains('show')) {
-                        const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
-                        if (bsCollapse) {
-                            bsCollapse.hide();
+                // Ensure page scrolls back to top
+                window.scrollTo({ top: 0, behavior: 'instant' });
+
+                // Update Link UI states
+                navLinks.forEach(link => {
+                    const sectionName = link.getAttribute('data-section');
+                    const isActive = sectionName === targetId;
+                    link.classList.toggle('active', isActive);
+
+                    if (link.classList.contains('nav-btn')) {
+                        if (isActive) {
+                            link.classList.add('bg-brand-deep', 'text-white', 'shadow-lg');
+                            link.classList.remove('text-slate-500', 'hover:bg-brand-deep/5');
                         } else {
-                            navMenu.classList.remove('show');
+                            link.classList.remove('bg-brand-deep', 'text-white', 'shadow-lg');
+                            link.classList.add('text-slate-500', 'hover:bg-brand-deep/5');
                         }
                     }
                 });
-            });
 
-            // -- Fee SMS Logic --
-            document.querySelectorAll('.send-fee-sms-trigger').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const sid = btn.getAttribute('data-id');
-                    const sname = btn.getAttribute('data-name');
+                // Auto-Close Mobile Menu (Hardened step from reference)
+                if (typeof toggleMobileMenu === 'function' && mobileMenu.classList.contains('opacity-100')) {
+                    toggleMobileMenu(true);
+                }
+            };
 
-                    if (confirm(`Trigger manual SMS fee reminder for ${sname}?`)) {
-                        try {
-                            const res = await fetch(`/api/send-fee-sms/${sid}`, { method: 'POST' });
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message);
-                            } else {
-                                showToast(data.message, 'error');
-                            }
-                        } catch (err) {
-                            showToast("Failed to trigger SMS simulation.", "error");
-                        }
-                    }
-                });
-            });
-
-            // -- Student Search Logic --
+            // -- SEARCH INTELLIGENCE --
             const searchInput = document.getElementById('searchStudent');
-            const studentTableBody = document.getElementById('student-table-body');
+            const tableRows = document.querySelectorAll('#student-table-body tr');
 
-            if (searchInput && studentTableBody) {
-                searchInput.addEventListener('input', (e) => {
-                    const term = e.target.value.toLowerCase().trim();
-                    const rows = studentTableBody.querySelectorAll('tr');
-                    rows.forEach(row => {
-                        const text = row.innerText.toLowerCase();
-                        row.classList.toggle('d-none', !text.includes(term));
-                    });
+            searchInput?.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase().trim();
+                tableRows.forEach(row => {
+                    const content = row.innerText.toLowerCase();
+                    row.classList.toggle('hidden', !content.includes(term));
                 });
-            }
+            });
 
-            // -- Notify Defaulters Logic --
-            const notifyBtn = document.getElementById('notifyDefaultersBtn');
-            if (notifyBtn) {
-                notifyBtn.addEventListener('click', () => {
-                    const rows = studentTableBody.querySelectorAll('tr');
-                    const defaulters = Array.from(rows).filter(row => {
-                        const status = row.querySelector('.badge-pill-custom').innerText.trim();
-                        return status === 'Unpaid' || status === 'Pending';
-                    });
+            // -- CORE API TRANSACTIONS --
 
-                    if (defaulters.length === 0) {
-                        showToast("No fee defaulters found.", "info");
-                        return;
-                    }
-
-                    if (confirm(`Send automated SMS reminders to ${defaulters.length} fee defaulters?`)) {
-                        showToast(`Queued SMS alerts for ${defaulters.length} students. (Simulation)`);
-                    }
-                });
-            }
-
-            // -- Device Reset Logic (Simplified) --
-            document.querySelectorAll('.reset-device-trigger').forEach(btn => {
+            // Toggle Fee Utility
+            document.querySelectorAll('.fee-badge').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const sid = btn.getAttribute('data-id');
-                    const sname = btn.getAttribute('data-name');
+                    e.preventDefault();
+                    btn.classList.add('opacity-50', 'pointer-events-none');
+                    try {
+                        const href = btn.getAttribute('href');
+                        const res = await fetch(href);
+                        if (res.ok) {
+                            showToast("Synchronized profile financial state.");
+                            setTimeout(() => location.reload(), 800);
+                        }
+                    } catch (err) {
+                        showToast("Failed to communicate with master records.", "error");
+                        btn.classList.remove('opacity-50', 'pointer-events-none');
+                    }
+                });
+            });
 
-                    if (confirm(`Are you sure to delete this user unique ID for ${sname}?`)) {
+            // Device Reset Protocol
+            document.querySelectorAll('.reset-device-trigger').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const sid = btn.dataset.id;
+                    const name = btn.dataset.name;
+                    if (confirm(`SECURITY OVERRIDE PROTOCOL: Authorize hardware reset for ${name}?`)) {
                         try {
-                            const res = await fetch(`/api/reset-device/${sid}`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ reason: 'Admin Reset' })
-                            });
+                            const res = await fetch(`/api/reset-device/${sid}`, { method: 'POST' });
                             const data = await res.json();
                             if (data.status === 'success') {
                                 showToast(data.message);
@@ -587,14 +678,79 @@
                                 showToast(data.message, 'error');
                             }
                         } catch (err) {
-                            showToast("Security override failed. Try again.", "error");
+                            showToast("Protocol interface connection failure.", "error");
                         }
                     }
                 });
             });
+
+            // Permanent Data Purge
+            document.querySelectorAll('.delete-student-trigger').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const sid = btn.dataset.id;
+                    const name = btn.dataset.name;
+                    if (confirm(`CRITICAL DATA PURGE: Are you absolutely sure you want to PERMANENTLY scrub ${name}'s data from the secure registry?`)) {
+                        try {
+                            const res = await fetch(`/api/delete-student/${sid}`, { method: 'POST' });
+                            const data = await res.json();
+                            if (data.status === 'success') {
+                                showToast(`Subject "${name}" scrubbed from cluster.`);
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                showToast(data.message, 'error');
+                            }
+                        } catch (err) {
+                            showToast("Purge sequence interrupted internally.", "error");
+                        }
+                    }
+                });
+            });
+
+            // Broadcast Alerts
+            document.getElementById('notifyDefaultersBtn')?.addEventListener('click', () => {
+                const unpaid = Array.from(document.querySelectorAll('.fee-badge')).filter(b => b.innerText.toLowerCase().includes('unpaid'));
+                if (unpaid.length > 0) {
+                    if (confirm(`INITIATE BROADCAST: Synchronize SMS alerts to ${unpaid.length} identified fee defaulters?`)) {
+                        showToast(`Queued ${unpaid.length} secure SMS payloads.`);
+                    }
+                } else {
+                    showToast("No active fee defaulters detected via Current Registry.", "error");
+                }
+            });
+
+            // Mobile Menu Logic
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-nav-btn');
+
+            const toggleMobileMenu = (forceClose = false) => {
+                const isOpen = mobileMenu.classList.contains('opacity-100');
+                if (isOpen || forceClose) {
+                    mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    mobileMenu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                    document.body.style.overflow = '';
+                } else {
+                    mobileMenu.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    mobileMenu.setAttribute('aria-hidden', 'false');
+                    mobileMenuToggle.setAttribute('aria-expanded', 'true');
+                    // No need to lock body scroll for simple dropdown unless desired
+                }
+            };
+
+            mobileMenuToggle?.addEventListener('click', () => toggleMobileMenu());
+            closeMobileMenu?.addEventListener('click', () => toggleMobileMenu(true));
+
+            // Close on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileMenu.classList.contains('translate-x-0')) {
+                    toggleMobileMenu(true);
+                }
+            });
         });
-
-
     </script>
 </body>
 

@@ -1,503 +1,382 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="VET IAS Driver Portal — manage live bus location, QR boarding cards, and passenger manifest.">
     <title>Driver Portal | VET IAS Bus System</title>
-    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}?v=4" type="image/x-icon">
 
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Styles & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- QR Code Lib -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --accent: #4895ef;
-            --success: #4cc9f0;
-            --bg-light: #f8f9fc;
-            --text-dark: #2b2d42;
-            --text-muted: #8d99ae;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
-        }
-
-        /* Glass Navbar */
-        .navbar {
-            background: var(--glass-bg) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 1rem 0;
-            transition: all 0.3s ease;
-        }
-
-        .brand-text {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 1.25rem;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-link {
-            color: var(--text-dark) !important;
-            font-weight: 500;
-            padding: 0.6rem 1.2rem !important;
-            border-radius: 12px;
-            margin: 0 0.2rem;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .nav-link:hover {
-            background: rgba(67, 97, 238, 0.08);
-            color: var(--primary) !important;
-        }
-
-        .nav-link.active {
-            background: var(--primary);
-            color: white !important;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-        }
-
-        /* Dashboard Container */
-        main {
-            padding-top: 100px !important;
-        }
-
-        /* Premium Cards */
-        .card {
-            border: none;
-            border-radius: 24px;
-            background: white;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-        }
-
-        .card-header {
-            background: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-            padding: 1.5rem;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Stat Cards */
-        .stat-card {
-            padding: 1.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        /* Auto-Sync Pulse */
-        .pulse-indicator {
-            width: 10px;
-            height: 10px;
-            background: #00f5ff;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            box-shadow: 0 0 0 rgba(0, 245, 255, 0.4);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.4);
-            }
-
-            70% {
-                box-shadow: 0 0 0 10px rgba(0, 245, 255, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(0, 245, 255, 0);
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            deep: '#004d40',
+                            light: '#f1f8e9',
+                            orange: '#ff9800',
+                            gold: '#ffc107',
+                            dark: '#00241a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 20px 50px -12px rgba(0, 77, 64, 0.08)',
+                        'soft': '0 10px 30px -5px rgba(0, 0, 0, 0.04)',
+                        'glow': '0 0 20px rgba(255, 193, 7, 0.3)'
+                    }
+                }
             }
         }
+    </script>
 
-        /* QR Frame */
-        .qr-card {
-            background: white;
-            text-align: center;
-            padding: 3rem 1.5rem;
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply antialiased text-slate-800 bg-[#fcfdfe]; }
+            html { scroll-padding-top: 80px; }
         }
+        @layer components {
+            .bg-glass { @apply bg-white/80 backdrop-blur-xl; }
+            .nav-btn { @apply px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2; }
+            .nav-btn.active { @apply bg-brand-deep text-white shadow-lg shadow-brand-deep/20 scale-105; }
+            .nav-btn:not(.active) { @apply text-slate-500 hover:bg-slate-100 hover:text-brand-deep; }
+            
+            .stat-card { @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-soft transition-all duration-300 hover:shadow-premium hover:-translate-y-1; }
+            .action-btn { @apply font-bold uppercase tracking-normal text-xs py-3.5 px-6 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2; }
+            
+            .mobile-nav-btn { @apply w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none; }
 
-        .qr-frame {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 32px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.02);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem auto;
-            width: 100%;
-            max-width: 320px;
-            /* Constrain container */
-        }
-
-        /* Ensure QR code image scales */
-        .qr-frame img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* Manifest List */
-        .manifest-container {
-            border-radius: 20px;
-            background: white;
-            box-shadow: var(--card-shadow);
-        }
-
-        .manifest-item {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background 0.2s ease;
-        }
-
-        .manifest-item:last-child {
-            border-bottom: none;
-        }
-
-        .manifest-item:hover {
-            background: var(--bg-light);
-        }
-
-        .manifest-info h6 {
-            margin: 0;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .manifest-info p {
-            margin: 0;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: var(--primary);
-            border: none;
-            border-radius: 12px;
-            padding: 0.8rem 1.5rem;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.3);
-        }
-
-        .btn-outline-success {
-            border-radius: 12px;
-            border: 2px solid #2ecc71;
-            color: #27ae60;
-            font-weight: 600;
-        }
-
-        /* Generic Section Transtions */
-        section {
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-light);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #d1d9e6;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #b8c2d1;
+            .manifest-item { @apply p-4 border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors flex items-center justify-between; }
         }
     </style>
 </head>
 
-<body data-bus-no="{{ bus_no }}">
+<body data-bus-no="{{ bus_no }}" class="min-h-screen flex flex-col pt-20">
+
+    <!-- Background Decoration -->
+    <div
+        class="fixed top-0 left-0 w-full h-full -z-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-brand-gold/5 via-transparent to-transparent pointer-events-none">
+    </div>
+
     <!-- Toast Container -->
-    <div id="toast-container" style="position: fixed; top: 100px; right: 20px; z-index: 9999;"></div>
+    <div id="toast-container" class="fixed top-24 right-6 z-50 flex flex-col gap-3"></div>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="Logo"
-                    style="height: 42px; margin-right: 12px;">
-                <span class="brand-text">VET IAS Bus System</span>
-            </a>
+    <!-- Top Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-40 bg-glass border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS" class="h-10">
+                <div>
+                    <h1 class="text-sm font-black text-brand-deep uppercase leading-none">Driver Portal</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Bus {{ bus_no }}
+                        Management</p>
+                </div>
+            </div>
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-                <i class="bi bi-list fs-1 text-primary"></i>
-            </button>
+            <!-- Desktop Nav -->
+            <div class="hidden lg:flex items-center gap-2 bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50">
+                <button class="nav-btn active" onclick="showSection('dashboard')" data-section="dashboard">
+                    <i class="bi bi-grid-fill"></i> Summary
+                </button>
+                <button class="nav-btn" onclick="showSection('manifest')" data-section="manifest">
+                    <i class="bi bi-people-fill"></i> Manifest
+                </button>
+                <button class="nav-btn" onclick="showSection('manual')" data-section="manual">
+                    <i class="bi bi-pencil-square"></i> Manual Entry
+                </button>
+            </div>
 
-            <div class="collapse navbar-collapse" id="navMenu">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" onclick="showSection('dashboard')">
-                            <i class="bi bi-grid-fill"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showSection('manifest')">
-                            <i class="bi bi-people-fill"></i> Manifest
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showSection('manual')">
-                            <i class="bi bi-pencil-square"></i> Manual Entry
-                        </a>
-                    </li>
-                    <li class="nav-item ms-lg-4">
-                        <a href="/logout" class="btn btn-outline-danger btn-sm px-4 rounded-pill">Logout</a>
-                    </li>
-                </ul>
+            <div class="flex items-center gap-4">
+                <a href="/logout"
+                    class="hidden md:flex bg-red-50 hover:bg-red-100 text-red-600 font-bold px-5 py-2.5 rounded-xl transition-all active:scale-95 text-sm items-center gap-2">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+                <button
+                    class="lg:hidden text-2xl p-2 focus:outline-none focus:ring-2 focus:ring-brand-deep/20 rounded-lg text-brand-deep"
+                    id="mobile-menu-toggle" aria-label="Open navigation menu" aria-expanded="false"
+                    aria-controls="mobile-menu">
+                    <i class="bi bi-list"></i>
+                </button>
             </div>
         </div>
     </nav>
 
+    <!-- Traditional Mobile Dropdown -->
+    <div id="mobile-menu"
+        class="lg:hidden fixed top-20 left-0 w-full bg-white/95 backdrop-blur-xl z-[100] border-b border-slate-100 shadow-2xl opacity-0 pointer-events-none -translate-y-4 transition-all duration-300 ease-out"
+        role="dialog" aria-modal="true" aria-label="Navigation Menu" aria-hidden="true">
+        <nav class="flex flex-col p-6 gap-2">
+            <button class="mobile-nav-btn" onclick="showSection('dashboard')">
+                <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+            </button>
+            <button class="mobile-nav-btn" onclick="showSection('manifest')">
+                <i class="bi bi-people-fill"></i> <span>Manifest</span>
+            </button>
+            <button class="mobile-nav-btn" onclick="showSection('manual')">
+                <i class="bi bi-pencil-square"></i> <span>Manual Entry</span>
+            </button>
+            <div class="h-px bg-slate-100 my-2"></div>
+            <a href="/logout"
+                class="w-full text-red-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-red-50 transition-colors">
+                <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
     <!-- Main Content -->
-    <main class="container">
+    <main class="flex-grow container max-w-7xl mx-auto px-6 py-8">
 
-        <!-- === DASHBOARD SECTION === -->
-        <section id="dashboard">
-            <div class="row align-items-center mb-5">
-                <div class="col-lg-8">
-                    <h1 class="fw-bold mb-1">Driver Portal</h1>
-                    <p class="text-muted">Route <strong>{{ bus_no }}</strong> &bull; Morning Shift &bull; Live Updates
-                    </p>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <button class="btn btn-outline-success shadow-sm" onclick="confirmBusEmpty()">
-                        <i class="bi bi-shield-check me-2"></i> Confirm Bus Empty
-                    </button>
-                </div>
-            </div>
-
-            <div class="row g-4 mb-5">
-                <div class="col-md-6">
-                    <div class="card stat-card h-100">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <div class="stat-label">Passengers</div>
-                                <div class="stat-value" id="student-count">0 / 40</div>
-                                <div class="mt-2 small text-success">
-                                    <i class="bi bi-arrow-up-short"></i> Live Manifest
-                                </div>
-                            </div>
-                            <div class="stat-icon">
-                                <i class="bi bi-people-fill"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card stat-card h-100">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <div class="stat-label">Sync Status</div>
-                                <div class="stat-value text-primary" id="gps-display">
-                                    <span class="pulse-indicator"></span> Active
-                                </div>
-                                <div class="mt-2 small text-muted">
-                                    Last Sync: <span id="sync-status">Just now</span>
-                                </div>
-                            </div>
-                            <div class="stat-icon" style="background: rgba(0, 245, 255, 0.1); color: #00b8c4;">
-                                <i class="bi bi-cloud-check-fill"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Big QR Card -->
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="card qr-card mb-5">
-                        <div class="mb-4">
-                            <h3 class="fw-bold">Student Boarding Card</h3>
-                            <p class="text-muted">Please ask students to scan the code below</p>
-                        </div>
-                        <div class="qr-frame">
-                            <div id="qrcode"></div>
-                        </div>
-                        <div class="mt-2">
-                            <div class="badge bg-light text-dark px-3 py-2 rounded-pill mb-2">
-                                <i class="bi bi-arrow-repeat me-1"></i> <span id="qr-timer">10s</span>
-                            </div>
-                            <p class="small text-muted mb-0">Code refreshes automatically for security.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- === MANIFEST SECTION === -->
-        <section id="manifest" class="d-none">
-            <div class="d-flex justify-content-between align-items-end mb-4">
+        <!-- DASHBOARD SECTION -->
+        <section id="dashboard" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                 <div>
-                    <h2 class="fw-bold mb-1">Passenger Manifest</h2>
-                    <p class="text-muted mb-0">Real-time list of all students currently on board.</p>
+                    <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">Vehicle
+                        Operations</h2>
+                    <div class="flex items-center gap-4 mt-3">
+                        <span
+                            class="px-3 py-1 rounded-full bg-brand-deep/5 text-brand-deep text-[10px] font-black uppercase border border-brand-deep/10">Bus
+                            #{{ bus_no }}</span>
+                        <span
+                            class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase border border-emerald-100">Live
+                            Status</span>
+                    </div>
                 </div>
-                <button class="btn btn-outline-primary btn-sm rounded-pill px-4" onclick="fetchManifest()">
-                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                <button
+                    class="action-btn bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-200/50 rounded-2xl py-4 px-8 group"
+                    onclick="confirmBusEmpty()">
+                    <i class="bi bi-shield-check text-lg"></i>
+                    <span>Confirm Bus Empty</span>
                 </button>
             </div>
 
-            <div class="manifest-container">
-                <div id="manifest-list">
-                    <!-- Dynamic Items -->
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="text-muted mt-3">Loading manifest...</p>
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <div class="stat-card group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total
+                                Boarded</p>
+                            <h3 class="text-4xl font-black text-brand-dark" id="student-count">0 / --</h3>
+                            <p class="text-xs font-bold text-emerald-500 mt-2 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Real-time Manifest Sync
+                            </p>
+                        </div>
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-brand-deep text-white flex items-center justify-center text-2xl shadow-lg shadow-brand-deep/20 transition-transform group-hover:scale-110">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cloud
+                                Syncying</p>
+                            <h3 class="text-4xl font-black text-brand-deep flex items-center gap-3" id="gps-display">
+                                <span class="inline-block w-3 h-3 rounded-full bg-brand-gold animate-ping"></span>
+                                ACTIVE
+                            </h3>
+                            <p class="text-xs font-bold text-slate-400 mt-2">Last Heartbeat: <span id="sync-status"
+                                    class="text-slate-600">Syncing...</span></p>
+                        </div>
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-brand-gold text-white flex items-center justify-center text-2xl shadow-lg shadow-brand-gold/20 transition-transform group-hover:scale-110">
+                            <i class="bi bi-cloud-check-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Boarding Card -->
+            <div class="max-w-2xl mx-auto">
+                <div
+                    class="bg-white rounded-[2.5rem] border border-slate-100 shadow-soft p-8 md:p-12 text-center relative overflow-hidden">
+
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-black text-brand-dark uppercase tracking-tight">Student Boarding Card
+                        </h3>
+                        <p class="text-slate-500 font-medium text-sm mt-2 font-mono">ENCRYPTED DYNAMIC QR INTERFACE</p>
+                    </div>
+
+                    <div class="relative inline-block mt-4">
+                        <div
+                            class="bg-slate-50 p-8 rounded-3xl border border-slate-100 flex items-center justify-center">
+                            <div id="qrcode" class="flex items-center justify-center min-h-[200px] min-w-[200px]"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 flex flex-col items-center gap-4">
+                        <div
+                            class="inline-flex items-center gap-3 bg-slate-50 px-6 py-2.5 rounded-full border border-slate-100">
+                            <i class="bi bi-arrow-repeat text-brand-gold animate-spin-slow"></i>
+                            <span class="text-sm font-black text-slate-700 tracking-tighter"
+                                id="qr-timer">REFRESHING...</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Security Protocol
+                            ACTIVE &bull; Rotates every 10s</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- === MANUAL ENTRY SECTION === -->
-        <section id="manual" class="d-none">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="text-center mb-5">
-                        <h2 class="fw-bold">Manual Entry</h2>
-                        <p class="text-muted">Manually mark attendance for students or scan barcode.</p>
-                    </div>
+        <!-- MANIFEST SECTION -->
+        <section id="manifest" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">
+                        Passenger Manifest</h2>
+                    <p class="text-slate-500 font-medium mt-2">Real-time list of boarded students.</p>
+                </div>
+                <button class="action-btn bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl"
+                    onclick="fetchManifest()">
+                    <i class="bi bi-arrow-clockwise text-lg"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
 
-                    <div class="card p-4 p-lg-5">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark">STUDENT IDENTIFIER</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i
-                                        class="bi bi-person-badge"></i></span>
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-soft overflow-hidden">
+                <div id="manifest-list" class="divide-y divide-slate-50">
+                    <!-- Dynamic Entry Points -->
+                    <div class="p-20 text-center">
+                        <div
+                            class="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto mb-4">
+                        </div>
+                        <p class="text-slate-400 font-black uppercase text-xs tracking-widest">Compiling Live Data...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MANUAL ENTRY SECTION -->
+        <section id="manual" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="max-w-xl mx-auto py-12">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">Manual
+                        Override</h2>
+                    <p class="text-slate-500 font-medium mt-3 px-4">Use this terminal for manual attendance marking or
+                        deep-scanning hardware.</p>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] border border-slate-100 shadow-premium p-8 md:p-12 relative overflow-hidden">
+                    <div class="space-y-6">
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3 ml-2">Hardware/Manual
+                                Identifier</label>
+                            <div class="relative group">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-deep text-slate-300">
+                                    <i class="bi bi-upc-scan text-xl"></i>
+                                </div>
                                 <input type="text" id="manual-input"
-                                    class="form-control form-control-lg bg-light border-0"
-                                    placeholder="Enter ID or Name..." style="border-radius: 0 12px 12px 0;">
-                            </div>
-                            <div class="form-text mt-3 text-muted">
-                                <i class="bi bi-info-circle me-1"></i> System automatically listens for hardware barcode
-                                scanners.
+                                    class="w-full bg-slate-50/50 border-2 border-slate-100 rounded-2xl py-5 pl-14 pr-6 font-bold text-brand-dark placeholder:text-slate-300 focus:outline-none focus:border-brand-gold focus:bg-white transition-all text-lg"
+                                    placeholder="Scan Barcode or Type ID...">
                             </div>
                         </div>
-                        <button class="btn btn-primary btn-lg w-100 py-3 mt-2" onclick="submitManualEntry()">
-                            <i class="bi bi-check2-circle me-2"></i> Mark Attendance
+
+                        <button
+                            class="action-btn w-full bg-brand-deep text-white hover:bg-brand-dark py-5 rounded-2xl shadow-xl shadow-brand-deep/20 text-base"
+                            onclick="submitManualEntry()">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Confirm Boarding
                         </button>
+                    </div>
+
+                    <div class="mt-8 flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100/50">
+                        <i class="bi bi-info-circle-fill text-brand-gold text-lg"></i>
+                        <p class="text-[10px] text-amber-700 font-bold leading-relaxed uppercase">The system
+                            auto-listens for hardware barcode scanners in real-time.</p>
                     </div>
                 </div>
             </div>
         </section>
-
     </main>
 
-    <footer class="mt-5 text-center py-5 border-top bg-white">
-        <p class="text-muted small mb-0">&copy; 2026 VET IAS College Bus Management System</p>
+    <footer class="mt-12 py-12 border-t border-slate-100 bg-white">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex items-center justify-center gap-3 mb-4 opacity-30 grayscale">
+                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS" class="h-6">
+                <span class="text-xs font-black uppercase tracking-tighter">VET IAS SYSTEM v2.0</span>
+            </div>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">&copy; 2026 VET IAS College Bus
+                Management System</p>
+        </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
     <script>
         const BUS_NO = document.body.getAttribute('data-bus-no');
-        let lastManifestCount = 0;
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
 
-        // --- Tab Navigation ---
+        // Tab Navigation Pattern (Optimized for Tailwind)
         function showSection(id) {
-            document.querySelectorAll('section').forEach(el => el.classList.add('d-none'));
-            document.getElementById(id).classList.remove('d-none');
+            // Hide all sections
+            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+            // Show target
+            document.getElementById(id).classList.remove('hidden');
 
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            if (window.event && window.event.target.closest('.nav-link')) {
-                window.event.target.closest('.nav-link').classList.add('active');
-            }
-
-            // Auto-Close Mobile Menu (Robust)
-            const navMenu = document.getElementById('navMenu');
-            if (navMenu.classList.contains('show')) {
-                const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
-                if (bsCollapse) {
-                    bsCollapse.hide();
+            // Update Tab State
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.getAttribute('data-section') === id) {
+                    btn.classList.add('active');
                 } else {
-                    // Fallback if instance not found
-                    navMenu.classList.remove('show');
+                    btn.classList.remove('active');
                 }
-            }
+            });
 
+            // Toggle Mobile Menu (Force Close)
+            toggleMobileMenu(true);
+
+            // Fetch manifest if switching to manifest tab
             if (id === 'manifest') fetchManifest();
+
+            // Scroll to top for focus
+            window.scrollTo({ top: 0, behavior: 'instant' });
         }
 
+        const toggleMobileMenu = (forceClose = false) => {
+            const isOpen = mobileMenu.classList.contains('opacity-100');
+            if (isOpen || forceClose) {
+                mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                mobileMenu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                mobileMenu.setAttribute('aria-hidden', 'true');
+                mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            } else {
+                mobileMenu.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+                mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                mobileMenu.setAttribute('aria-hidden', 'false');
+                mobileMenuToggle.setAttribute('aria-expanded', 'true');
+            }
+        };
 
+        mobileMenuToggle?.addEventListener('click', () => toggleMobileMenu());
+
+        // Manifest Helper
+        function fetchManifest() {
+            if (typeof DriverApp !== 'undefined') {
+                DriverApp.syncManifest(BUS_NO);
+            }
+        }
 
         // Initialize Centralized Driver Logic
         if (typeof DriverApp !== 'undefined') {
@@ -508,7 +387,7 @@
             console.error("DriverApp not found in scripts.js");
         }
 
-        // --- Actions ---
+        // Actions
         function submitManualEntry() {
             const input = document.getElementById('manual-input');
             const id = input.value;
@@ -530,33 +409,47 @@
         }
 
         function confirmBusEmpty() {
-            if (confirm("Confirm: Have you checked all seats?")) {
+            const confirmed = confirm("Boarding Verification: Have you physically inspected all seats for potential safety oversights?");
+            if (confirmed) {
                 fetch('/api/bus-empty-check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ bus_no: BUS_NO })
-                }).then(() => showToast("Final check recorded. Safe journey!"));
+                }).then(() => {
+                    showToast("Safety Check Recorded. Safe Journey!");
+                });
             }
         }
 
-        // Barcode Scanner Listener
-        let buffer = ""; let lastKeyTime = Date.now();
+        // Barcode Scanner Integration
+        let barcodeBuffer = "";
+        let lastTimestamp = Date.now();
         document.addEventListener('keydown', (e) => {
+            // Ignore if typing in input
             if (document.activeElement.id === 'manual-input' && e.key !== 'Enter') return;
-            if (Date.now() - lastKeyTime > 100) buffer = "";
-            lastKeyTime = Date.now();
+
+            // 100ms timeout for scanner stream
+            if (Date.now() - lastTimestamp > 100) barcodeBuffer = "";
+            lastTimestamp = Date.now();
+
             if (e.key === 'Enter') {
-                if (buffer.length > 0) {
+                if (barcodeBuffer.length > 0) {
                     fetch('/api/manual-attendance', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ bus_no: BUS_NO, identifier: buffer })
+                        body: JSON.stringify({ bus_no: BUS_NO, identifier: barcodeBuffer })
                     }).then(r => r.json()).then(d => {
-                        d.status === 'success' ? showToast("Barcode Boarding: " + d.message) : showToast(d.message, 'error');
+                        if (d.status === 'success') {
+                            showToast("Barcode Detected: " + d.message);
+                        } else {
+                            showToast(d.message, 'error');
+                        }
                     });
-                    buffer = "";
+                    barcodeBuffer = "";
                 }
-            } else if (e.key.length === 1) buffer += e.key;
+            } else if (e.key.length === 1) {
+                barcodeBuffer += e.key;
+            }
         });
     </script>
 </body>

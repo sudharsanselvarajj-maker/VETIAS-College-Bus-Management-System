@@ -1,388 +1,286 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description"
+        content="Student Portal for the VET IAS Bus System — mark attendance, view history, and submit complaints.">
     <title>Student Portal | VET IAS Bus System</title>
-    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}?v=4" type="image/x-icon">
 
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            deep: '#004d40',
+                            light: '#f1f8e9',
+                            orange: '#ff9800',
+                            gold: '#ffc107',
+                            dark: '#00241a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'brand': '12px',
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 30px -10px rgba(0, 77, 64, 0.08)',
+                        'glow': '0 0 20px rgba(255, 193, 7, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- QR Scanner Lib -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- jsQR — lightweight pure-JS QR decoder, no UI injected -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --accent: #4895ef;
-            --success: #4cc9f0;
-            --bg-light: #f8f9fc;
-            --text-dark: #2b2d42;
-            --text-muted: #8d99ae;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --border-color: rgba(0, 0, 0, 0.05);
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
-        }
-
-        /* Glass Navbar */
-        .navbar {
-            background: var(--glass-bg) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-            transition: all 0.3s ease;
-        }
-
-        .brand-text {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 1.25rem;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-link {
-            color: var(--text-dark) !important;
-            font-weight: 500;
-            padding: 0.6rem 1.2rem !important;
-            border-radius: 12px;
-            margin: 0 0.2rem;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
-
-        .nav-link:hover {
-            background: rgba(67, 97, 238, 0.08);
-            color: var(--primary) !important;
-        }
-
-        .nav-link.active {
-            background: var(--primary);
-            color: white !important;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-        }
-
-        /* Container */
-        main {
-            padding-top: 100px !important;
-        }
-
-        /* Premium Cards */
-        .card {
-            border: none;
-            border-radius: 24px;
-            background: white;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-        }
-
-        .card-header {
-            background: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-            padding: 1.25rem 1.5rem;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Stat Cards */
-        .stat-card {
-            padding: 1.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        /* Table */
-        .table {
-            margin-bottom: 0;
-        }
-
-        .table thead th {
-            background: var(--bg-light);
-            border: none;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 1rem 1.5rem;
-        }
-
-        .table tbody td {
-            padding: 1.25rem 1.5rem;
-            vertical-align: middle;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-        }
-
-        /* QR Frame */
-        .qr-frame {
-            border: 2px dashed #d1d9e6;
-            background: #fbfcfe;
-            border-radius: 20px;
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        /* Form Controls */
-        .form-control,
-        .form-select {
-            border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 0.75rem 1rem;
-            background-color: var(--bg-light);
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
-            border-color: var(--primary);
-            background-color: white;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: var(--primary);
-            border: none;
-            border-radius: 12px;
-            padding: 0.8rem 1.5rem;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.3);
-        }
-
-        /* Section Transitions */
-        section {
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
+    <style type="text/tailwindcss">
+        @layer base {
+            html {
+                scroll-padding-top: 80px;
             }
         }
-
-        /* Custom Badge */
-        .badge-custom {
-            padding: 0.5rem 1rem;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.75rem;
+        @layer components {
+            .nav-link-custom {
+                @apply flex items-center gap-3 px-5 py-3 rounded-brand font-semibold text-slate-500 hover:bg-brand-deep/5 hover:text-brand-deep transition-all duration-300 cursor-pointer;
+            }
+            .nav-link-custom.active {
+                @apply bg-brand-deep text-white shadow-lg shadow-brand-deep/20;
+            }
+            .stat-card {
+                @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+            }
+            .premium-btn {
+                @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-200 active:scale-95 text-sm;
+            }
+            .btn-primary-custom {
+                @apply bg-brand-deep text-white shadow-lg hover:bg-brand-dark hover:shadow-brand-deep/20;
+            }
+            .btn-outline-custom {
+                @apply border-2 border-slate-200 text-slate-600 hover:border-brand-deep hover:text-brand-deep;
+            }
+            .card-fancy {
+                @apply bg-white rounded-3xl border border-slate-100 shadow-soft overflow-hidden;
+            }
+        }
+        @layer utilities {
+            .bg-glass {
+                @apply bg-white/80 backdrop-blur-md border border-white/20;
+            }
         }
     </style>
 </head>
 
-<body>
-    <!-- Toast Container -->
-    <div id="toast-container" style="position: fixed; top: 100px; right: 20px; z-index: 9999;"></div>
+<body class="bg-[#fcfdfe] text-slate-800 font-sans min-h-screen">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="Logo"
-                    style="height: 42px; margin-right: 12px;">
-                <span class="brand-text">VET IAS Student</span>
-            </a>
+    <!-- Background Accents -->
+    <div
+        class="fixed top-0 left-0 w-full h-full -z-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-brand-gold/5 via-transparent to-transparent">
+    </div>
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-                <i class="bi bi-list fs-1 text-primary"></i>
-            </button>
+    <!-- Toast Service -->
+    <div id="toast-container" class="fixed top-24 right-6 z-[200] flex flex-col gap-3"></div>
 
-            <div class="collapse navbar-collapse" id="navMenu">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link active" onclick="showSection('dashboard')">
-                            <i class="bi bi-grid-fill"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" onclick="showSection('attendance')">
-                            <i class="bi bi-qr-code-scan"></i> Attendance
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" onclick="showSection('complaints')">
-                            <i class="bi bi-chat-left-dots-fill"></i> Complaints
-                        </a>
-                    </li>
-                    <li class="nav-item ms-lg-4">
-                        <a href="/logout" class="btn btn-outline-danger btn-sm px-4 rounded-pill">Logout</a>
-                    </li>
-                </ul>
+    <!-- Top Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-50 bg-glass border-b border-slate-100">
+        <div class="max-w-[1440px] mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS" class="h-10">
+                <div>
+                    <h1 class="text-sm font-black text-brand-deep uppercase leading-none">Student Portal</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">VET IAS Bus System
+                    </p>
+                </div>
+            </div>
+
+            <!-- Desktop Nav -->
+            <div class="hidden lg:flex items-center gap-2 bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50">
+                <a href="#" role="button" class="nav-link-custom active"
+                    onclick="showSection('dashboard'); return false;">
+                    <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+                </a>
+                <a href="#" role="button" class="nav-link-custom" onclick="showSection('attendance'); return false;">
+                    <i class="bi bi-qr-code-scan"></i> <span>Attendance</span>
+                </a>
+                <a href="#" role="button" class="nav-link-custom" onclick="showSection('complaints'); return false;">
+                    <i class="bi bi-chat-left-dots-fill"></i> <span>Complaints</span>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex flex-col items-end mr-2">
+                    <span class="text-xs font-bold text-slate-600">{{ student.name }}</span>
+                    <span class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Active Student</span>
+                </div>
+                <a href="/logout"
+                    class="hidden sm:flex bg-red-50 hover:bg-red-100 text-red-600 font-bold px-5 py-2.5 rounded-xl transition-all active:scale-95 text-sm items-center gap-2">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+                <button
+                    class="lg:hidden text-2xl p-2 focus:outline-none focus:ring-2 focus:ring-brand-deep/20 rounded-lg"
+                    id="mobile-menu-toggle" aria-label="Open navigation menu" aria-expanded="false"
+                    aria-controls="mobile-menu">
+                    <i class="bi bi-list"></i>
+                </button>
             </div>
         </div>
     </nav>
 
+    <!-- Traditional Mobile Dropdown -->
+    <div id="mobile-menu"
+        class="lg:hidden fixed top-20 left-0 w-full bg-white/95 backdrop-blur-xl z-[100] border-b border-slate-100 shadow-2xl opacity-0 pointer-events-none -translate-y-4 transition-all duration-300 ease-out"
+        role="dialog" aria-modal="true" aria-label="Main Navigation Menu" aria-hidden="true">
+
+        <nav class="flex flex-col p-6 gap-2">
+            <a href="#" role="button" onclick="showSection('dashboard'); return false;"
+                class="mobile-nav-btn w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none">
+                <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+            </a>
+            <a href="#" role="button" onclick="showSection('attendance'); return false;"
+                class="mobile-nav-btn w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none">
+                <i class="bi bi-qr-code-scan"></i> <span>Attendance</span>
+            </a>
+            <a href="#" role="button" onclick="showSection('complaints'); return false;"
+                class="mobile-nav-btn w-full text-slate-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors focus:outline-none">
+                <i class="bi bi-chat-left-dots-fill"></i> <span>Complaints</span>
+            </a>
+            <div class="h-px bg-slate-100 my-2"></div>
+            <a href="/logout"
+                class="w-full text-red-600 text-lg font-bold flex items-center gap-4 px-6 py-4 rounded-xl hover:bg-red-50 transition-colors focus:outline-none">
+                <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
     <!-- Main Content -->
-    <main class="container">
+    <main class="max-w-[1440px] mx-auto px-4 md:px-6 pt-28 md:pt-32 pb-20">
 
         <!-- === DASHBOARD VIEW === -->
-        <section id="dashboard">
-            <div class="row align-items-center mb-5">
-                <div class="col-lg-8">
-                    <h1 class="fw-bold mb-1">Student Portal</h1>
-                    <p class="text-muted mb-0">Welcome back, <strong>{{ student.name }}</strong></p>
+        <section id="dashboard" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">Student
+                        Portal</h2>
+                    <p class="text-slate-500 font-medium mt-2">Welcome back, <span class="text-brand-deep font-bold">{{
+                            student.name }}</span></p>
                 </div>
-                <div class="col-lg-4 text-lg-end">
-                    <button class="btn btn-outline-primary shadow-sm rounded-pill" onclick="location.reload()">
-                        <i class="bi bi-arrow-clockwise me-2"></i> Refresh
-                    </button>
-                </div>
+                <button class="premium-btn btn-outline-custom" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> Synchronize Data
+                </button>
             </div>
 
             <!-- Stats Grid -->
-            <div class="row g-4 mb-5">
-                <div class="col-md-4">
-                    <div class="card stat-card h-100">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">Attendance Rate</div>
-                                <div class="stat-value">{{ (history|length * 10) }}%</div>
-                                <div class="mt-2 small text-success">
-                                    <i class="bi bi-shield-check me-1"></i> Good Standing
-                                </div>
-                            </div>
-                            <div class="stat-icon">
-                                <i class="bi bi-pie-chart-fill"></i>
-                            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Attendance Rate
+                            </p>
+                            <h3 class="text-4xl font-black text-brand-deep">{{ (history|length * 10) }}%</h3>
+                            <p class="text-[10px] text-emerald-500 font-bold mt-2 italic flex items-center gap-1">
+                                <i class="bi bi-shield-check"></i> Good Standing Status
+                            </p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                            <i class="bi bi-pie-chart-fill"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card stat-card h-100">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">Fee Status</div>
-                                <div class="stat-value">
-                                    {% if student.fee_status == 'Paid' %}
-                                    <span class="text-success">Paid</span>
-                                    {% elif student.fee_status == 'Pending' %}
-                                    <span class="text-warning">Pending</span>
-                                    {% else %}
-                                    <span class="text-danger">Unpaid</span>
-                                    {% endif %}
-                                </div>
-                                <div class="mt-2 small text-muted">
-                                    Spring 2026
-                                </div>
-                            </div>
-                            <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">
-                                <i class="bi bi-credit-card-fill"></i>
-                            </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Fee Status</p>
+                            <h3
+                                class="text-4xl font-black {% if student.fee_status == 'Paid' %}text-emerald-500{% elif student.fee_status == 'Pending' %}text-amber-500{% else %}text-red-500{% endif %}">
+                                {{ student.fee_status }}
+                            </h3>
+                            <p class="text-[10px] text-slate-400 font-bold mt-2 italic uppercase tracking-wider">
+                                Session: Spring 2026</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                            <i class="bi bi-credit-card-fill"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card stat-card h-100">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">Assigned Bus</div>
-                                <div class="stat-value">{{ student.bus_no }}</div>
-                                <div class="mt-2 small text-muted">
-                                    Main Campus Route
-                                </div>
-                            </div>
-                            <div class="stat-icon" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;">
-                                <i class="bi bi-bus-front-fill"></i>
-                            </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Assigned Bus</p>
+                            <h3 class="text-4xl font-black text-brand-deep">{{ student.bus_no }}</h3>
+                            <p class="text-[10px] text-brand-orange font-bold mt-2 italic uppercase tracking-wider">Main
+                                Campus Route</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                            <i class="bi bi-bus-front-fill"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Activity Table -->
-            <div class="card shadow-sm border-0">
-                <div class="card-header border-0 bg-white">
-                    <span class="fw-bold">Recent Attendance History</span>
-                    <button class="btn btn-sm text-primary p-0" onclick="showSection('attendance')">Scan Now</button>
+            <!-- Activity Table -->
+            <div class="card-fancy">
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-black text-brand-deep uppercase tracking-tighter">Recent Attendance History</h3>
+                    <button class="text-xs font-bold text-brand-orange hover:text-brand-gold uppercase tracking-widest"
+                        onclick="showSection('attendance')">Scan Now</button>
                 </div>
-                <div class="table-responsive">
-                    <table class="table hover align-middle">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
                         <thead>
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>Bus ID</th>
-                                <th>Method</th>
-                                <th>Status</th>
+                            <tr class="bg-slate-50/50">
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Date & Time</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bus
+                                    ID</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Method</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Status</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                             {% if history %}
                             {% for log in history[:5] %}
-                            <tr>
-                                <td class="fw-medium">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                                <td><span class="badge bg-light text-dark px-3 py-2 rounded-pill border">{{ log.bus_no
-                                        }}</span></td>
-                                <td class="text-muted">QR Scan</td>
-                                <td>
-                                    <span class="badge-custom bg-success bg-opacity-10 text-success">Verified</span>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 text-sm font-semibold text-slate-600">{{
+                                    log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 bg-slate-100 text-brand-deep text-[10px] font-black rounded-lg border border-slate-200 uppercase">
+                                        {{ log.bus_no }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-medium text-slate-400 italic">Secure QR Scan</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1 text-emerald-500 font-bold text-xs">
+                                        <i class="bi bi-patch-check-fill"></i> Verified
+                                    </span>
                                 </td>
                             </tr>
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">No attendance records found.</td>
+                                <td colspan="4" class="px-6 py-20 text-center text-slate-400 font-medium italic">No
+                                    attendance records detected in secure registry.</td>
                             </tr>
                             {% endif %}
                         </tbody>
@@ -392,50 +290,183 @@
         </section>
 
         <!-- === ATTENDANCE VIEW === -->
-        <section id="attendance" class="d-none">
-            <div class="row justify-content-center">
-                <div class="col-md-8 col-lg-6">
-                    <div class="text-center mb-5">
-                        <h2 class="fw-bold">Mark Attendance</h2>
-                        <p class="text-muted">Position your camera over the driver's QR code.</p>
+        <section id="attendance" class="hidden -mt-8 md:-mt-12">
+
+            <!-- Scan-line keyframe (one tiny needed style block — only for the animation) -->
+            <style>
+                @keyframes laserMove {
+                    0% {
+                        top: 12px;
+                    }
+
+                    100% {
+                        top: calc(100% - 12px);
+                    }
+                }
+
+                .qr-laser {
+                    position: absolute;
+                    left: 12px;
+                    right: 12px;
+                    height: 2px;
+                    border-radius: 9999px;
+                    background: linear-gradient(90deg, transparent, #6366f1 40%, #38bdf8 60%, transparent);
+                    box-shadow: 0 0 10px 2px rgba(99, 102, 241, 0.7);
+                    z-index: 5;
+                    animation: laserMove 2s ease-in-out infinite alternate;
+                }
+
+                @keyframes successPop {
+                    from {
+                        transform: scale(0.4);
+                        opacity: 0;
+                    }
+
+                    to {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                }
+
+                .qr-success-ring {
+                    animation: successPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                }
+            </style>
+
+            <div class="flex flex-col items-center gap-4 pt-0 pb-10 px-4">
+
+                <!-- Title -->
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Mark Attendance</h2>
+                    <p class="text-sm text-slate-400 mt-1">Point your camera at the driver's QR code</p>
+                </div>
+
+                <!-- ── 360×360 Square Scanner Box ── -->
+                <div style="position:relative; width:360px; height:360px; border-radius:16px; overflow:hidden; flex-shrink:0;"
+                    class="bg-[#080c18] shadow-2xl ring-1 ring-white/5">
+
+                    <!-- Hidden video (captured silently — prevents browser UI injection / white bar) -->
+                    <video id="qr-video" autoplay playsinline muted
+                        style="display:none; position:fixed; left:-9999px; width:1px; height:1px;"></video>
+
+                    <!-- Canvas: the ONLY visible display — immune to browser-injected bars -->
+                    <canvas id="qr-display"
+                        style="position:absolute; inset:0; width:100%; height:100%; display:block;"></canvas>
+
+                    <!-- Idle placeholder (shown before scanner launches) -->
+                    <div id="scanner-idle" style="position:absolute; inset:0; z-index:3; display:flex;"
+                        class="flex-col items-center justify-center gap-3 bg-[#080c18]">
+                        <i class="bi bi-qr-code-scan text-slate-600" style="font-size:3.5rem;"></i>
+                        <span class="text-[9px] font-black uppercase tracking-[0.22em] text-slate-500">Camera
+                            Standby</span>
                     </div>
 
-                    <div class="card p-4 p-lg-5 text-center">
-                        <div id="qr-reader" class="qr-frame mb-4" style="display:none;"></div>
-                        <div id="result-area" class="mb-3 fw-bold text-primary"></div>
+                    <!-- Animated corner brackets overlay (shown while scanning) -->
+                    <div id="scanner-corners"
+                        style="position:absolute; inset:0; z-index:4; pointer-events:none; display:none;">
+                        <!-- Top-left -->
+                        <span
+                            style="position:absolute; top:14px; left:14px; width:30px; height:30px;
+                                     border-top:3px solid #6366f1; border-left:3px solid #6366f1; border-radius:4px 0 0 0;"></span>
+                        <!-- Top-right -->
+                        <span
+                            style="position:absolute; top:14px; right:14px; width:30px; height:30px;
+                                     border-top:3px solid #6366f1; border-right:3px solid #6366f1; border-radius:0 4px 0 0;"></span>
+                        <!-- Bottom-left -->
+                        <span
+                            style="position:absolute; bottom:14px; left:14px; width:30px; height:30px;
+                                     border-bottom:3px solid #6366f1; border-left:3px solid #6366f1; border-radius:0 0 0 4px;"></span>
+                        <!-- Bottom-right -->
+                        <span
+                            style="position:absolute; bottom:14px; right:14px; width:30px; height:30px;
+                                     border-bottom:3px solid #6366f1; border-right:3px solid #6366f1; border-radius:0 0 4px 0;"></span>
+                        <!-- Animated laser line -->
+                        <div class="qr-laser"></div>
+                    </div>
 
-                        <div class="d-grid gap-3">
-                            <button class="btn btn-primary btn-lg py-3" onclick="startScan()">
-                                <i class="bi bi-camera-fill me-2"></i> Launch Scanner
-                            </button>
-                            <button class="btn btn-outline-secondary btn-lg py-3 rounded-4"
-                                onclick="showSection('dashboard')">Back to Dashboard</button>
+                    <!-- Success flash overlay (shown on QR detect) -->
+                    <div id="scanner-success"
+                        style="position:absolute; inset:0; z-index:6; display:none; backdrop-filter:blur(3px);"
+                        class="items-center justify-center bg-emerald-500/10">
+                        <div class="qr-success-ring w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center
+                                    shadow-[0_0_0_14px_rgba(34,197,94,0.15),0_12px_32px_rgba(34,197,94,0.4)]">
+                            <i class="bi bi-check-lg text-white" style="font-size:2.2rem;"></i>
                         </div>
                     </div>
 
-                    <div
-                        class="alert alert-primary border-0 rounded-4 d-flex align-items-center p-4 mt-4 bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-info-circle-fill me-3 fs-4"></i>
-                        <small class="fw-medium">Please ensure GPS is enabled. Attendance verification requires you to
-                            be within 15 meters of the bus stop check-in point.</small>
-                    </div>
                 </div>
+                <!-- end scanner box -->
+
+                <!-- Status line -->
+                <p id="scanner-status"
+                    class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-center min-h-[14px]">
+                </p>
+
+                <!-- Result feedback area -->
+                <div id="result-area" class="w-full max-w-xs text-center"></div>
+
+                <!-- Action buttons -->
+                <div class="flex flex-col gap-3 w-full max-w-xs">
+
+                    <button id="btn-start-scan" onclick="startScan()" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl
+                                   bg-indigo-600 hover:bg-indigo-700 active:scale-95
+                                   text-white text-sm font-bold tracking-wide
+                                   shadow-[0_4px_18px_rgba(99,102,241,0.38)]
+                                   transition-all duration-150">
+                        <i class="bi bi-camera-fill"></i>
+                        Launch Scanner
+                    </button>
+
+                    <button id="btn-stop-scan" onclick="stopScan()" class="hidden flex items-center justify-center gap-2 w-full py-3 rounded-xl
+                                   border border-slate-200 text-slate-500 text-sm font-semibold
+                                   hover:border-indigo-400 hover:text-indigo-600 active:scale-95
+                                   transition-all duration-150">
+                        <i class="bi bi-stop-circle"></i>
+                        Stop Scanner
+                    </button>
+
+                    <button onclick="stopScan(); showSection('dashboard')" class="flex items-center justify-center gap-2 w-full py-3 rounded-xl
+                                   border border-slate-200 text-slate-500 text-sm font-semibold
+                                   hover:border-indigo-400 hover:text-indigo-600 active:scale-95
+                                   transition-all duration-150">
+                        <i class="bi bi-arrow-left"></i>
+                        Back to Dashboard
+                    </button>
+
+                </div>
+
+                <!-- GPS Alert -->
+                <div class="flex items-start gap-3 w-full max-w-sm px-4 py-3.5 rounded-2xl
+                            bg-indigo-50/70 border border-indigo-100">
+                    <i class="bi bi-geo-alt-fill text-indigo-500 mt-0.5 flex-shrink-0 text-base"></i>
+                    <p class="text-xs text-slate-500 leading-relaxed m-0">
+                        <strong class="text-slate-700">GPS required.</strong>
+                        Your device must be within <strong class="text-indigo-600">15 metres</strong>
+                        of the designated bus stop to verify attendance.
+                    </p>
+                </div>
+
             </div>
         </section>
 
-        <!-- === COMPLAINTS VIEW === -->
-        <section id="complaints" class="d-none">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="text-center mb-5">
-                        <h2 class="fw-bold">Complaint Center</h2>
-                        <p class="text-muted">Report any issues regarding bus service, safety, or cleanliness.</p>
-                    </div>
 
-                    <div class="card p-4 p-lg-5 shadow-sm border-0">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-muted small uppercase spacing-1">ISSUE SUBJECT</label>
-                            <select id="complaint-subject" class="form-select border-0 bg-light py-3 px-4">
+        <!-- === COMPLAINTS VIEW === -->
+        <section id="complaints" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="max-w-2xl mx-auto">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-extrabold text-brand-dark tracking-tighter uppercase leading-none">
+                        Complaint Center</h2>
+                    <p class="text-slate-500 font-medium mt-2">Report institutional transportation issues securely.</p>
+                </div>
+
+                <div class="card-fancy p-8 md:p-12">
+                    <div class="space-y-6">
+                        <div>
+                            <label
+                                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Issue
+                                Subject</label>
+                            <select id="complaint-subject"
+                                class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-brand-deep/5 transition-all">
                                 <option value="Bus Delay">Bus Delay</option>
                                 <option value="Driver Behavior">Driver Behavior</option>
                                 <option value="Overcrowding">Overcrowding</option>
@@ -444,17 +475,18 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-muted small uppercase spacing-1">DETAILED
-                                DESCRIPTION</label>
-                            <textarea id="complaint-text" class="form-control border-0 bg-light p-4" rows="5"
-                                placeholder="Please provide specific details like time, location, etc."></textarea>
+                        <div>
+                            <label
+                                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Detailed
+                                Description</label>
+                            <textarea id="complaint-text"
+                                class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-5 text-sm font-medium text-slate-600 focus:outline-none focus:ring-4 focus:ring-brand-deep/5 transition-all min-h-[160px]"
+                                placeholder="Describe the incident, including time, location, and bus number (if known)..."></textarea>
                         </div>
-                        <div class="d-flex justify-content-end pt-2">
-                            <button class="btn btn-primary px-5 py-3 rounded-4" onclick="submitComplaint()">
-                                <i class="bi bi-send-fill me-2"></i> Submit Report
-                            </button>
-                        </div>
+                        <button class="premium-btn btn-primary-custom w-full py-4 text-base"
+                            onclick="submitComplaint()">
+                            <i class="bi bi-send-check"></i> Submit Secure Report
+                        </button>
                     </div>
                 </div>
             </div>
@@ -462,84 +494,297 @@
 
     </main>
 
-    <footer class="mt-5 text-center py-5 border-top bg-white">
-        <p class="text-muted small mb-0">&copy; 2026 VET IAS College Bus Management System. All Rights Reserved.</p>
+    <footer class="bg-white border-t border-slate-100 py-16 mt-auto">
+        <div class="max-w-[1440px] mx-auto px-6 text-center">
+            <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS"
+                class="h-10 mx-auto mb-8 opacity-20 grayscale brightness-150">
+            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] mb-4">VET IAS College
+                Transportation &copy; 2026</p>
+            <div
+                class="flex items-center justify-center gap-6 text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                <span class="flex items-center gap-2"><i class="bi bi-shield-lock text-brand-deep"></i> Encrypted
+                    Access</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                <span class="flex items-center gap-2"><i class="bi bi-cpu text-brand-deep"></i> Verified Node</span>
+            </div>
+        </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 
     <script>
-        // Tab Switching Logic
-        function showSection(sectionId) {
-            document.querySelectorAll("section[id]").forEach(s => s.classList.add("d-none"));
-            document.getElementById(sectionId).classList.remove("d-none");
+        document.addEventListener('DOMContentLoaded', () => {
 
-            // Update Nav State
-            document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+            // Notification Engine (Lightweight local version or bridge to scripts.js)
+            const showToast = (message, type = 'success') => {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const colorClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-brand-deep';
 
-            // Handle clicking via code or link
-            const links = document.querySelectorAll(".nav-link");
-            links.forEach(l => {
-                if (l.getAttribute('onclick') && l.getAttribute('onclick').includes(sectionId)) {
-                    l.classList.add('active');
+                toast.className = `${colorClass} text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-right-10 duration-500 border border-white/10`;
+                toast.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="bi bi-${type === 'success' ? 'patch-check' : 'shield-exclamation'}-fill text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-black text-[10px] uppercase tracking-widest leading-none mb-1">${type === 'success' ? 'Protocol Success' : 'Security Alert'}</p>
+                        <p class="font-medium text-xs opacity-90 tracking-tight">${message}</p>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('animate-out', 'fade-out', 'slide-out-to-right-10');
+                    setTimeout(() => toast.remove(), 500);
+                }, 4000);
+            };
+
+            // Section Swapping Logic (Preserving & Hardening "Student Portal" Actions)
+            const sections = document.querySelectorAll('main section');
+            const desktopLinks = document.querySelectorAll('.nav-link-custom');
+            const mobileLinks = document.querySelectorAll('.mobile-nav-btn');
+
+            window.showSection = (sectionId) => {
+                // Hide all sections
+                sections.forEach(s => s.classList.add('hidden'));
+
+                // Show target
+                const target = document.getElementById(sectionId);
+                if (target) {
+                    target.classList.remove('hidden');
+                }
+
+                // Update UI state
+                desktopLinks.forEach(l => {
+                    const onclick = l.getAttribute('onclick');
+                    l.classList.toggle('active', onclick && onclick.includes(sectionId));
+                });
+
+                // Auto-Close Mobile menu (Hardened custom logic)
+                if (typeof toggleMobileMenu === 'function' && mobileMenu.classList.contains('opacity-100')) {
+                    toggleMobileMenu(true);
+                }
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'instant' });
+
+                // Save state
+                localStorage.setItem('student_last_tab', sectionId);
+            };
+
+            // Mobile Menu Controller
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            const toggleMobileMenu = (forceClose = false) => {
+                if (!mobileMenu) return;
+                const isOpen = mobileMenu.classList.contains('opacity-100');
+                if (isOpen || forceClose) {
+                    mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    mobileMenu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    mobileMenuToggle?.setAttribute('aria-expanded', 'false');
+                    document.body.style.overflow = '';
+                } else {
+                    mobileMenu.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    mobileMenu.setAttribute('aria-hidden', 'false');
+                    mobileMenuToggle?.setAttribute('aria-expanded', 'true');
+                }
+            };
+
+            mobileMenuToggle?.addEventListener('click', () => toggleMobileMenu());
+            closeMobileMenu?.addEventListener('click', () => toggleMobileMenu(true));
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileMenu?.classList.contains('translate-x-0')) {
+                    toggleMobileMenu(true);
                 }
             });
 
-            // Auto-Close Mobile Menu (Robust)
-            const navMenu = document.getElementById('navMenu');
-            if (navMenu.classList.contains('show')) {
-                const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
-                if (bsCollapse) {
-                    bsCollapse.hide();
-                } else {
-                    navMenu.classList.remove('show');
+            // Restore last tab
+            const lastTab = localStorage.getItem('student_last_tab') || 'dashboard';
+            showSection(lastTab);
+
+            // --- Custom QR Scanner (getUserMedia + jsQR — canvas-only display, no white bars) ---
+            let _scanStream = null;
+            let _scanRAF = null;
+            let _scanDone = false;
+
+            const $ = id => document.getElementById(id);
+
+            function setStatus(msg) {
+                const el = $('scanner-status');
+                if (el) el.textContent = msg;
+            }
+
+            function showEl(id, displayType = 'flex') {
+                const el = $(id);
+                if (el) el.style.display = displayType;
+            }
+            function hideEl(id) {
+                const el = $(id);
+                if (el) el.style.display = 'none';
+            }
+
+            window.stopScan = () => {
+                if (_scanStream) { _scanStream.getTracks().forEach(t => t.stop()); _scanStream = null; }
+                if (_scanRAF) { cancelAnimationFrame(_scanRAF); _scanRAF = null; }
+                _scanDone = false;
+
+                const vid = $('qr-video');
+                if (vid) vid.srcObject = null;
+
+                // Reset overlays
+                showEl('scanner-idle', 'flex');
+                hideEl('scanner-corners');
+                hideEl('scanner-success');
+                $('btn-start-scan')?.classList.remove('hidden');
+                $('btn-stop-scan')?.classList.add('hidden');
+                setStatus('');
+            };
+
+            window.startScan = async () => {
+                if (_scanStream) return;
+                _scanDone = false;
+                $('result-area').innerHTML = '';
+                setStatus('Requesting camera...');
+                $('btn-start-scan')?.classList.add('hidden');
+                $('btn-stop-scan')?.classList.remove('hidden');
+
+                // Hide idle overlay
+                hideEl('scanner-idle');
+
+                try {
+                    _scanStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: 'environment' } }
+                    });
+                } catch (err) {
+                    showToast('Camera access denied. Please enable camera permissions.', 'error');
+                    setStatus('Camera access denied.');
+                    showEl('scanner-idle', 'flex');   // restore idle
+                    $('btn-start-scan')?.classList.remove('hidden');
+                    $('btn-stop-scan')?.classList.add('hidden');
+                    return;
+                }
+
+                const video = $('qr-video');
+                const display = $('qr-display');
+                const ctx = display.getContext('2d');
+
+                video.srcObject = _scanStream;
+                await video.play().catch(() => { });
+
+                showEl('scanner-corners', 'block');
+                setStatus('Scanning for QR code...');
+
+                const tick = () => {
+                    if (_scanDone || !_scanStream) return;
+
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        display.width = video.videoWidth || 300;
+                        display.height = video.videoHeight || 300;
+                        ctx.drawImage(video, 0, 0, display.width, display.height);
+
+                        const imgData = ctx.getImageData(0, 0, display.width, display.height);
+                        const code = jsQR(imgData.data, imgData.width, imgData.height,
+                            { inversionAttempts: 'dontInvert' });
+
+                        if (code) {
+                            _scanDone = true;
+                            setStatus('QR detected! Verifying...');
+                            hideEl('scanner-corners');
+                            showEl('scanner-success', 'flex');
+                            _scanStream.getTracks().forEach(t => t.stop());
+                            _scanStream = null;
+                            $('btn-stop-scan')?.classList.add('hidden');
+
+                            Utils.getLocation()
+                                .then(loc => markAttendanceCustom(code.data, loc))
+                                .catch(() => {
+                                    showToast('Location required for attendance!', 'error');
+                                    setStatus('GPS access denied.');
+                                    hideEl('scanner-success');
+                                    $('btn-start-scan')?.classList.remove('hidden');
+                                });
+                            return;
+                        }
+                    }
+                    _scanRAF = requestAnimationFrame(tick);
+                };
+                _scanRAF = requestAnimationFrame(tick);
+            };
+
+            async function markAttendanceCustom(qrData, loc) {
+                try {
+                    const deviceId = await Utils.getDeviceId();
+                    const res = await fetch('/api/mark-attendance', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ qr_data: qrData, lat: loc.lat, lng: loc.lng, device_id: deviceId })
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        showToast(data.message, 'success');
+                        setStatus('Attendance marked successfully!');
+                        $('result-area').innerHTML = `
+                            <div style="margin-top:8px;padding:14px 18px;background:#ecfdf5;border:1px solid #a7f3d0;
+                                        border-radius:14px;color:#065f46;font-weight:700;font-size:13px;
+                                        display:flex;align-items:center;gap:10px;">
+                                <i class="bi bi-patch-check-fill" style="font-size:1.2rem;"></i>
+                                <span>Attendance Marked! Parent notified via email.</span>
+                            </div>`;
+                        setTimeout(() => location.reload(), 2500);
+                    } else {
+                        showToast(data.message, 'error');
+                        setStatus('Verification failed.');
+                        hideEl('scanner-success');
+                        $('result-area').innerHTML = `
+                            <div style="margin-top:8px;padding:14px 18px;background:#fef2f2;border:1px solid #fecaca;
+                                        border-radius:14px;color:#991b1b;font-weight:700;font-size:13px;
+                                        display:flex;align-items:center;gap:10px;">
+                                <i class="bi bi-shield-exclamation" style="font-size:1.2rem;"></i>
+                                <span>${data.message}</span>
+                            </div>`;
+                        $('btn-start-scan')?.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    showToast('Network error. Try again.', 'error');
+                    setStatus('Network error.');
+                    $('btn-start-scan')?.classList.remove('hidden');
                 }
             }
-        }
 
-        // --- Bridge Logic ---
-        function startScan() {
-            document.getElementById('qr-reader').style.display = 'flex';
-            if (typeof StudentApp !== 'undefined') {
-                StudentApp.startScanner();
-            } else {
-                showToast("Scanner module loading...", "error");
-            }
-        }
+            window.submitComplaint = async () => {
+                const subject = document.getElementById('complaint-subject').value;
+                const msg = document.getElementById('complaint-text').value;
 
-        async function submitComplaint() {
-            const subject = document.getElementById('complaint-subject').value;
-            const msg = document.getElementById('complaint-text').value;
-
-            if (!msg) {
-                if (typeof showToast !== 'undefined') showToast("Please write a message", "error");
-                else alert("Please write a message");
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/submit-complaint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject: subject, message: msg })
-                });
-
-                if (response.ok) {
-                    document.getElementById('complaint-text').value = "";
-                    if (typeof showToast !== 'undefined') showToast("Complaint Submitted Successfully", "success");
-                    else alert("Complaint Submitted Successfully");
-                    setTimeout(() => location.reload(), 3000);
-                } else {
-                    throw new Error("Failed to submit");
+                if (!msg.trim()) {
+                    showToast("Description field cannot be empty.", "error");
+                    return;
                 }
-            } catch (err) {
-                if (typeof showToast !== 'undefined') showToast("Submission failed. Try again.", "error");
-                else alert("Submission failed. Try again.");
-            }
-        }
 
+                try {
+                    const response = await fetch('/api/submit-complaint', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ subject: subject, message: msg })
+                    });
 
+                    if (response.ok) {
+                        document.getElementById('complaint-text').value = "";
+                        showToast("Complaint synchronized with secure registry.", "success");
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        throw new Error("Handshake failed.");
+                    }
+                } catch (err) {
+                    showToast("Registry submission failed. Check network link.", "error");
+                }
+            };
+        });
     </script>
 </body>
 

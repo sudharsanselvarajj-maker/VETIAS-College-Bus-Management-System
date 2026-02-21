@@ -5,3 +5,5 @@ qrcode
 pillow
 email-validator
 gunicorn
+python-dotenv
+werkzeug

@@ -1,562 +1,742 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VET IAS College Bus Management System</title>
-    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}?v=4" type="image/x-icon">
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            deep: '#004d40',
+                            light: '#f1f8e9',
+                            orange: '#ff9800',
+                            gold: '#ffc107',
+                            dark: '#00241a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'brand': '10px',
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 30px -10px rgba(0, 77, 64, 0.1)',
+                        'glow': '0 0 20px rgba(255, 193, 7, 0.3)',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <!-- Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --brand-deep: #004d40;
+                --brand-light: #f1f8e9;
+                --brand-orange: #ff9800;
+                --brand-gold: #ffc107;
+                --brand-dark: #00241a;
+            }
+            html {
+                scroll-padding-top: 80px;
+            }
+        }
+        @layer utilities {
+            .bg-glass {
+                @apply bg-white/90 backdrop-blur-md border border-white/20;
+            }
+            .section-padding {
+                @apply py-20 px-6 max-w-7xl mx-auto;
+            }
+            .transition-standard {
+                @apply transition-all duration-300 ease-in-out;
+            }
         }
 
-        :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #2c3e50;
-            --accent: #e74c3c;
-            --light: #f8f9fa;
-            --dark: #1a252f;
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        .header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            padding: 1rem 0;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-section img {
-            height: 50px;
-        }
-
-        .logo-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--secondary);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #555;
-            font-weight: 500;
-            transition: color 0.3s;
-            font-size: 0.95rem;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary);
-        }
-
-        .btn-login {
-            background: var(--primary);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-login:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-        }
-
-        /* Hero Section */
-        .hero {
-            margin-top: 80px;
-            padding: 100px 2rem;
-            text-align: center;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-            z-index: -1;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
-            animation: fadeInUp 0.8s ease-out;
-        }
-
-        .hero p {
-            font-size: 1.3rem;
-            margin-bottom: 2.5rem;
-            opacity: 0.95;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            animation: fadeInUp 0.8s ease-out 0.2s both;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            animation: fadeInUp 0.8s ease-out 0.4s both;
-        }
-
-        .btn-primary,
-        .btn-secondary {
-            padding: 15px 35px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.05rem;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: white;
-            color: var(--primary);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-secondary:hover {
-            background: white;
-            color: var(--primary);
-        }
-
-        /* Features Section */
-        .features {
-            padding: 80px 2rem;
-            background: white;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .section-title h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--secondary);
-            margin-bottom: 1rem;
-        }
-
-        .section-title p {
-            font-size: 1.1rem;
-            color: #666;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2.5rem;
-        }
-
-        .feature-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 2.5rem;
-            border-radius: 16px;
-            text-align: center;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .feature-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--primary) 0%, #667eea 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
-            color: white;
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-        }
-
-        .feature-card h3 {
-            font-size: 1.4rem;
-            color: var(--secondary);
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .feature-card p {
-            color: #555;
-            line-height: 1.7;
-        }
-
-        /* Routes Section */
-        .routes {
-            padding: 80px 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .routes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .route-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 2rem;
-            border-radius: 12px;
-            transition: all 0.3s;
-        }
-
-        .route-card:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-5px);
-        }
-
-        .route-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .route-details {
-            font-size: 0.95rem;
-            opacity: 0.9;
-            line-height: 1.8;
-        }
-
-        /* Footer */
-        .footer {
-            background: var(--dark);
-            color: white;
-            padding: 3rem 2rem 1.5rem;
-            text-align: center;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-
-        .footer-links a:hover {
+        .scroll-reveal.active {
             opacity: 1;
-        }
-
-        .social-icons {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .social-icons a {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-        }
-
-        .social-icons a:hover {
-            background: var(--primary);
-            transform: translateY(-3px);
-        }
-
-        .copyright {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 1.5rem;
-            opacity: 0.7;
-            font-size: 0.9rem;
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero p {
-                font-size: 1.1rem;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .section-title h2 {
-                font-size: 2rem;
-            }
+            transform: translateY(0);
         }
     </style>
 </head>
 
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo-section">
-                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS Logo">
-                <span class="logo-text">VET IAS Bus System</span>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- Navigation -->
+    <nav
+        class="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm transition-standard">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS Logo" class="h-12">
+                <div class="hidden md:block">
+                    <span class="block text-brand-deep font-bold text-lg leading-tight uppercase tracking-tight">VET
+                        Institute</span>
+                    <span class="block text-slate-500 text-xs font-semibold">Arts and Science</span>
+                </div>
             </div>
-            <nav class="nav-links">
-                <a href="#home">Home</a>
-                <a href="#features">Features</a>
-                <a href="#routes">Routes</a>
-                <a href="/login" class="btn-login">Login</a>
-            </nav>
+
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#home" class="text-slate-600 hover:text-brand-deep font-medium transition-standard">Home</a>
+                <a href="#features"
+                    class="text-slate-600 hover:text-brand-deep font-medium transition-standard">Features</a>
+                <a href="#how-it-works" class="text-slate-600 hover:text-brand-deep font-medium transition-standard">How
+                    It Works</a>
+                <a href="#parent-notifications"
+                    class="text-slate-600 hover:text-brand-deep font-medium transition-standard">Parent Alerts</a>
+                <a href="/login"
+                    class="bg-gradient-to-r from-brand-gold to-brand-orange text-white px-8 py-2.5 rounded-brand font-bold shadow-soft hover:scale-105 active:scale-95 transition-standard">Login</a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button
+                class="md:hidden text-brand-deep text-2xl p-2 focus:outline-none focus:ring-2 focus:ring-brand-deep/20 rounded-lg"
+                id="menuBtn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileMenu">
+                <i class="bi bi-list" id="menuIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Traditional Mobile Dropdown -->
+    <div id="mobile-menu"
+        class="lg:hidden fixed top-20 left-0 w-full bg-white/95 backdrop-blur-xl z-[100] border-b border-slate-100 shadow-2xl opacity-0 pointer-events-none -translate-y-4 transition-all duration-300 ease-out"
+        role="dialog" aria-modal="true" aria-label="Navigation Menu" aria-hidden="true">
+
+        <nav class="flex flex-col p-6 gap-2">
+            <a href="#home"
+                class="mobile-nav-link text-slate-600 text-lg font-bold px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors">Home</a>
+            <a href="#features"
+                class="mobile-nav-link text-slate-600 text-lg font-bold px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors">Features</a>
+            <a href="#how-it-works"
+                class="mobile-nav-link text-slate-600 text-lg font-bold px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors">How
+                It Works</a>
+            <a href="#parent-notifications"
+                class="mobile-nav-link text-slate-600 text-lg font-bold px-6 py-4 rounded-xl hover:bg-brand-deep/5 hover:text-brand-deep transition-colors">Parent
+                Alerts</a>
+            <div class="h-px bg-slate-100 my-2"></div>
+            <a href="/login"
+                class="mobile-nav-link text-brand-deep text-lg font-black px-6 py-4 rounded-xl hover:bg-brand-deep/5 transition-colors flex items-center gap-3">
+                <i class="bi bi-person-fill"></i> Account Portal
+            </a>
+        </nav>
+    </div>
+
+    <!-- Hero Section -->
+    <header id="home" class="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute inset-0 bg-gradient-to-br from-brand-deep to-brand-dark -z-10"></div>
+        <div class="absolute top-1/4 right-0 w-64 h-64 bg-brand-gold/10 blur-[100px] rounded-full"></div>
+        <div class="absolute bottom-1/4 left-0 w-96 h-96 bg-brand-orange/10 blur-[120px] rounded-full"></div>
+
+        <div class="section-padding flex flex-col items-center text-center animate-fade-in-up">
+            <div class="max-w-3xl">
+                <div
+                    class="inline-flex items-center gap-2 bg-white/10 text-brand-gold px-4 py-1.5 rounded-full text-sm font-semibold mb-6 backdrop-blur-sm border border-white/10 uppercase tracking-widest">
+                    <i class="bi bi-shield-check"></i>
+                    Trustworthy & Reliable
+                </div>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
+                    VET IAS College Bus <br>
+                    <span class="text-brand-gold uppercase">Attendance Portal</span>
+                </h1>
+                <p class="text-slate-300 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+                    A secure, proxy-proof boarding system for institutional transportation.
+                    Verified student check-ins with device binding and geofencing.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center gap-4 justify-center">
+                    <a href="/login"
+                        class="w-full sm:w-auto bg-gradient-to-r from-brand-gold to-brand-orange text-white px-10 py-4 rounded-brand font-bold shadow-lg hover:shadow-glow transition-standard">
+                        Student Login
+                    </a>
+                    <a href="#features"
+                        class="w-full sm:w-auto border-2 border-brand-gold/30 text-white px-10 py-4 rounded-brand font-bold hover:bg-white/5 transition-standard">
+                        System Details
+                    </a>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero" id="home">
-        <h1>Smart College Bus Management</h1>
-        <p>Real-time tracking, QR-based attendance, and seamless communication for VET IAS College transportation</p>
-        <div class="hero-buttons">
-            <a href="/login" class="btn-primary">
-                <i class="bi bi-box-arrow-in-right"></i>
-                Student Login
-            </a>
-            <a href="#features" class="btn-secondary">
-                <i class="bi bi-info-circle"></i>
-                Learn More
-            </a>
+    <!-- Trust Indicators -->
+    <section class="bg-white py-12 border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="flex flex-col items-center text-center gap-3">
+                <div class="text-brand-orange text-3xl"><i class="bi bi-shield-lock-fill"></i></div>
+                <span class="font-bold text-slate-700">Device Binding</span>
+            </div>
+            <div class="flex flex-col items-center text-center gap-3">
+                <div class="text-brand-orange text-3xl"><i class="bi bi-geo-fill"></i></div>
+                <span class="font-bold text-slate-700">GPS Verification</span>
+            </div>
+            <div class="flex flex-col items-center text-center gap-3">
+                <div class="text-brand-orange text-3xl"><i class="bi bi-journal-check"></i></div>
+                <span class="font-bold text-slate-700">Attendance Logs</span>
+            </div>
+            <div class="flex flex-col items-center text-center gap-3">
+                <div class="text-brand-orange text-3xl"><i class="bi bi-chat-dots-fill"></i></div>
+                <span class="font-bold text-slate-700">Parent Alerts</span>
+            </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section class="features" id="features">
-        <div class="container">
-            <div class="section-title">
-                <h2>Why Choose Our System?</h2>
-                <p>Modern technology for safe, efficient, and transparent bus management</p>
+    <section id="features" class="section-padding scroll-reveal">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-brand-deep mb-4 uppercase tracking-tighter">Project
+                Core
+                Modules</h2>
+            <div class="w-20 h-1.5 bg-brand-gold mx-auto mb-6 rounded-full"></div>
+            <p class="text-slate-500 max-w-2xl mx-auto">
+                A digitally transformed transport system prioritizing student safety, administrative efficiency, and
+                real-time accountability.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Student Module -->
+            <div
+                class="group bg-white p-8 rounded-brand shadow-soft hover:-translate-y-2 hover:shadow-xl transition-standard border border-slate-100">
+                <div
+                    class="w-14 h-14 bg-brand-light flex items-center justify-center rounded-xl mb-6 group-hover:bg-brand-orange transition-standard">
+                    <i
+                        class="bi bi-person-badge text-brand-orange text-2xl group-hover:text-white transition-standard"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-3 uppercase tracking-tight">Student Module</h3>
+                <p class="text-slate-500 leading-relaxed text-sm">
+                    Device-bound login, real-time attendance dashboard, fee status tracking, and proxy-proof QR
+                    boarding
+                    with geofence verification.
+                </p>
             </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-qr-code-scan"></i>
-                    </div>
-                    <h3>QR Attendance</h3>
-                    <p>Secure, proxy-proof attendance with dynamic QR codes and geolocation verification</p>
+
+            <!-- Driver Module -->
+            <div
+                class="group bg-white p-8 rounded-brand shadow-soft hover:-translate-y-2 hover:shadow-xl transition-standard border border-slate-100">
+                <div
+                    class="w-14 h-14 bg-brand-light flex items-center justify-center rounded-xl mb-6 group-hover:bg-brand-orange transition-standard">
+                    <i
+                        class="bi bi-bus-front text-brand-orange text-2xl group-hover:text-white transition-standard"></i>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
-                    <h3>Live Tracking</h3>
-                    <p>Track your bus in real-time and get accurate arrival estimates</p>
+                <h3 class="text-xl font-bold text-slate-800 mb-3 uppercase tracking-tight">Driver Module</h3>
+                <p class="text-slate-500 leading-relaxed text-sm">
+                    Automatic GPS heartbeat sync, dynamic secure QR generation, live passenger manifest, and
+                    mandatory
+                    "Bus Empty" safety checks.
+                </p>
+            </div>
+
+            <!-- Admin Console -->
+            <div
+                class="group bg-white p-8 rounded-brand shadow-soft hover:-translate-y-2 hover:shadow-xl transition-standard border border-slate-100">
+                <div
+                    class="w-14 h-14 bg-brand-light flex items-center justify-center rounded-xl mb-6 group-hover:bg-brand-orange transition-standard">
+                    <i class="bi bi-kanban text-brand-orange text-2xl group-hover:text-white transition-standard"></i>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-bell-fill"></i>
-                    </div>
-                    <h3>Parent Alerts</h3>
-                    <p>Automatic notifications sent to parents when students board the bus</p>
+                <h3 class="text-xl font-bold text-slate-800 mb-3 uppercase tracking-tight">Admin Console</h3>
+                <p class="text-slate-500 leading-relaxed text-sm">
+                    Powerful dashboard for student/fee management, searchable attendance logs with GPS data, and an
+                    immutable system audit trail.
+                </p>
+            </div>
+
+            <!-- Security Features -->
+            <div
+                class="group bg-white p-8 rounded-brand shadow-soft hover:-translate-y-2 hover:shadow-xl transition-standard border border-slate-100">
+                <div
+                    class="w-14 h-14 bg-brand-light flex items-center justify-center rounded-xl mb-6 group-hover:bg-brand-orange transition-standard">
+                    <i
+                        class="bi bi-shield-lock text-brand-orange text-2xl group-hover:text-white transition-standard"></i>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-chat-square-text-fill"></i>
-                    </div>
-                    <h3>Complaint System</h3>
-                    <p>Easy-to-use platform for reporting issues and tracking resolutions</p>
+                <h3 class="text-xl font-bold text-slate-800 mb-3 uppercase tracking-tight">Security Protocol</h3>
+                <p class="text-slate-500 leading-relaxed text-sm">
+                    Multi-layer security featuring browser fingerprinting for device binding and rigorous proximity
+                    checks using the Haversine formula.
+                </p>
+            </div>
+
+            <!-- Parent Alert System -->
+            <div
+                class="group bg-white p-8 rounded-brand shadow-soft hover:-translate-y-2 hover:shadow-xl transition-standard border border-slate-100">
+                <div
+                    class="w-14 h-14 bg-brand-light flex items-center justify-center rounded-xl mb-6 group-hover:bg-brand-orange transition-standard">
+                    <i
+                        class="bi bi-megaphone text-brand-orange text-2xl group-hover:text-white transition-standard"></i>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-shield-check"></i>
-                    </div>
-                    <h3>Device Binding</h3>
-                    <p>Enhanced security with one-device-per-student authentication</p>
+                <h3 class="text-xl font-bold text-slate-800 mb-3 uppercase tracking-tight">Parent Alerts</h3>
+                <p class="text-slate-500 leading-relaxed text-sm">
+                    Instant (simulated) SMS and email notifications for boarding confirmation and urgent fee
+                    reminders
+                    for pending accounts.
+                </p>
+            </div>
+
+            <!-- Incident Reports -->
+            <div
+                class="group bg-white p-8 rounded-brand shadow-soft hover:-translate-y-2 hover:shadow-xl transition-standard border border-slate-100">
+                <div
+                    class="w-14 h-14 bg-brand-light flex items-center justify-center rounded-xl mb-6 group-hover:bg-brand-orange transition-standard">
+                    <i
+                        class="bi bi-chat-square-text text-brand-orange text-2xl group-hover:text-white transition-standard"></i>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-speedometer2"></i>
-                    </div>
-                    <h3>Admin Dashboard</h3>
-                    <p>Comprehensive analytics and management tools for administrators</p>
+                <h3 class="text-xl font-bold text-slate-800 mb-3 uppercase tracking-tight">Incident Reports</h3>
+                <p class="text-slate-500 leading-relaxed text-sm">
+                    A direct complaint center for students to report delays or safety concerns, ensuring swift
+                    administrative resolution.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="bg-brand-light py-20 overflow-hidden">
+        <div class="section-padding">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-brand-deep mb-4 uppercase tracking-tighter">How
+                    It
+                    Works</h2>
+                <div class="w-20 h-1.5 bg-brand-gold mx-auto mb-6 rounded-full"></div>
+            </div>
+
+            <div class="relative flex flex-col md:flex-row justify-between items-center gap-12">
+                <!-- Connector Line -->
+                <div class="hidden md:block absolute top-[28px] left-[15%] right-[15%] h-[2px] bg-brand-deep/20 -z-0">
+                </div>
+
+                <!-- Step 1 -->
+                <div class="relative z-10 text-center flex-1 scroll-reveal">
+                    <div
+                        class="w-14 h-14 bg-brand-deep text-white flex items-center justify-center rounded-full mx-auto mb-6 font-bold text-xl ring-8 ring-white">
+                        1</div>
+                    <h4 class="font-bold text-brand-dark mb-2 text-lg uppercase">Sign In</h4>
+                    <p class="text-slate-500 text-sm">Log in through your secure, device-bound student or driver
+                        account.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative z-10 text-center flex-1 scroll-reveal" style="transition-delay: 0.2s;">
+                    <div
+                        class="w-14 h-14 bg-brand-deep text-white flex items-center justify-center rounded-full mx-auto mb-6 font-bold text-xl ring-8 ring-white">
+                        2</div>
+                    <h4 class="font-bold text-brand-dark mb-2 text-lg uppercase">Secure Scan</h4>
+                    <p class="text-slate-500 text-sm">Scan the dynamic QR code with geofence verification for
+                        proxy-proof boarding.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative z-10 text-center flex-1 scroll-reveal" style="transition-delay: 0.4s;">
+                    <div
+                        class="w-14 h-14 bg-brand-deep text-white flex items-center justify-center rounded-full mx-auto mb-6 font-bold text-xl ring-8 ring-white">
+                        3</div>
+                    <h4 class="font-bold text-brand-dark mb-2 text-lg uppercase">View History</h4>
+                    <p class="text-slate-500 text-sm">Parents get alerts, and students can monitor their boarding
+                        history logs.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Routes Section -->
-    <section class="routes" id="routes">
-        <div class="container">
-            <div class="section-title">
-                <h2>Bus Routes & Timings</h2>
-                <p>We serve multiple routes across the city for your convenience</p>
+    <!-- Parent Notification System -->
+    <section id="parent-notifications" class="section-padding scroll-reveal">
+        <div class="text-center mb-16">
+            <div
+                class="inline-flex items-center gap-2 bg-brand-light text-brand-deep px-4 py-1.5 rounded-full text-sm font-bold mb-6 uppercase tracking-widest border border-brand-deep/10">
+                <i class="bi bi-bell-fill text-brand-orange"></i>
+                Real-Time Alerts
             </div>
-            <div class="routes-grid">
-                <div class="route-card">
-                    <div class="route-number">
-                        <i class="bi bi-bus-front"></i>
-                        Bus-10
+            <h2 class="text-3xl md:text-4xl font-extrabold text-brand-deep mb-4 uppercase tracking-tighter">
+                Parent Notification System
+            </h2>
+            <div class="w-20 h-1.5 bg-brand-gold mx-auto mb-6 rounded-full"></div>
+            <p class="text-slate-500 max-w-2xl mx-auto leading-relaxed">
+                Parents are automatically notified the moment their ward boards the college bus —
+                keeping families informed, reducing anxiety, and ensuring full transparency at every step.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+
+            <!-- Left: Feature Cards -->
+            <div class="space-y-6">
+
+                <!-- Boarding Alert -->
+                <div
+                    class="flex gap-5 p-6 bg-white rounded-2xl shadow-soft border border-slate-100 hover:-translate-y-1 hover:shadow-lg transition-standard group">
+                    <div
+                        class="flex-shrink-0 w-14 h-14 bg-brand-light rounded-xl flex items-center justify-center group-hover:bg-brand-orange transition-standard">
+                        <i
+                            class="bi bi-bus-front-fill text-2xl text-brand-orange group-hover:text-white transition-standard"></i>
                     </div>
-                    <div class="route-details">
-                        <strong>Route:</strong> Main Campus - City Center<br>
-                        <strong>Timing:</strong> 7:00 AM - 6:00 PM<br>
-                        <strong>Frequency:</strong> Every 30 minutes
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-1 text-lg">Boarding Confirmation Alert</h4>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            The moment a student marks attendance via QR scan, parents receive an instant
+                            <strong class="text-brand-deep">Email & SMS</strong> confirming the boarding time,
+                            bus number, and date.
+                        </p>
                     </div>
                 </div>
-                <div class="route-card">
-                    <div class="route-number">
-                        <i class="bi bi-bus-front"></i>
-                        Bus-20
+
+                <!-- Fee Reminder -->
+                <div
+                    class="flex gap-5 p-6 bg-white rounded-2xl shadow-soft border border-slate-100 hover:-translate-y-1 hover:shadow-lg transition-standard group">
+                    <div
+                        class="flex-shrink-0 w-14 h-14 bg-brand-light rounded-xl flex items-center justify-center group-hover:bg-brand-orange transition-standard">
+                        <i
+                            class="bi bi-receipt text-2xl text-brand-orange group-hover:text-white transition-standard"></i>
                     </div>
-                    <div class="route-details">
-                        <strong>Route:</strong> Engineering Block - Railway Station<br>
-                        <strong>Timing:</strong> 7:15 AM - 6:15 PM<br>
-                        <strong>Frequency:</strong> Every 45 minutes
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-1 text-lg">Fee Reminder Alerts</h4>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Admin can dispatch urgent <strong class="text-brand-deep">SMS reminders</strong>
+                            to parents of students with pending bus fees, directly from the admin panel —
+                            one click, instant delivery.
+                        </p>
                     </div>
                 </div>
-                <div class="route-card">
-                    <div class="route-number">
-                        <i class="bi bi-bus-front"></i>
-                        Bus-30
+
+                <!-- Email Delivery -->
+                <div
+                    class="flex gap-5 p-6 bg-white rounded-2xl shadow-soft border border-slate-100 hover:-translate-y-1 hover:shadow-lg transition-standard group">
+                    <div
+                        class="flex-shrink-0 w-14 h-14 bg-brand-light rounded-xl flex items-center justify-center group-hover:bg-brand-orange transition-standard">
+                        <i
+                            class="bi bi-envelope-paper-fill text-2xl text-brand-orange group-hover:text-white transition-standard"></i>
                     </div>
-                    <div class="route-details">
-                        <strong>Route:</strong> Hostel Zone - College Gate<br>
-                        <strong>Timing:</strong> 6:45 AM - 7:00 PM<br>
-                        <strong>Frequency:</strong> Every 20 minutes
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-1 text-lg">Professional Email Dispatch</h4>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Branded HTML emails are sent to the parent's registered address via
+                            <strong class="text-brand-deep">SMTP</strong>, containing full boarding details
+                            in a clean, professional format.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Manual Attendance -->
+                <div
+                    class="flex gap-5 p-6 bg-white rounded-2xl shadow-soft border border-slate-100 hover:-translate-y-1 hover:shadow-lg transition-standard group">
+                    <div
+                        class="flex-shrink-0 w-14 h-14 bg-brand-light rounded-xl flex items-center justify-center group-hover:bg-brand-orange transition-standard">
+                        <i
+                            class="bi bi-person-check-fill text-2xl text-brand-orange group-hover:text-white transition-standard"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-1 text-lg">Manual Attendance Notifications</h4>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Even when a driver manually adds a student to the manifest, the notification
+                            pipeline is triggered — ensuring <strong class="text-brand-deep">no boarding goes
+                                unnoticed</strong>.
+                        </p>
                     </div>
                 </div>
             </div>
+
+            <!-- Right: Visual Panel -->
+            <div class="relative">
+                <!-- Main Panel -->
+                <div
+                    class="bg-gradient-to-br from-brand-deep to-brand-dark rounded-3xl p-8 text-white shadow-2xl overflow-hidden">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-10 h-10 bg-brand-gold/20 rounded-full flex items-center justify-center">
+                            <i class="bi bi-bell-fill text-brand-gold text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm uppercase tracking-widest text-brand-gold">Live Alert Preview
+                            </p>
+                            <p class="text-white/50 text-xs">Automated Notification System</p>
+                        </div>
+                    </div>
+
+                    <!-- Simulated Email Preview -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10 mb-6">
+                        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+                            <i class="bi bi-envelope-fill text-brand-gold"></i>
+                            <span class="text-xs font-bold uppercase tracking-widest text-white/70">Email
+                                Notification</span>
+                        </div>
+                        <p class="text-white/60 text-xs mb-1"><span class="text-white/40">To:</span> parent@example.com
+                        </p>
+                        <p class="text-white/60 text-xs mb-3"><span class="text-white/40">Subject:</span> VET IAS
+                            Transport Boarding Confirmation</p>
+                        <p class="text-white/80 text-sm leading-relaxed">
+                            Dear Parent, your ward <strong class="text-brand-gold">Student Name</strong> has
+                            successfully boarded <strong class="text-brand-gold">Bus-10</strong> at
+                            <strong class="text-brand-gold">08:15 AM</strong> on 21-02-2026.
+                        </p>
+                        <p class="text-white/40 text-xs mt-3 pt-3 border-t border-white/10">
+                            — VET Institute of Arts and Science, Transport Administration
+                        </p>
+                    </div>
+
+                    <!-- SMS Preview -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+                        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+                            <i class="bi bi-chat-dots-fill text-brand-gold"></i>
+                            <span class="text-xs font-bold uppercase tracking-widest text-white/70">SMS
+                                Notification</span>
+                        </div>
+                        <p class="text-white/80 text-sm leading-relaxed">
+                            Dear Parent, your ward has boarded the college bus
+                            (Bus No: <strong class="text-brand-gold">Bus-10</strong>) at
+                            <strong class="text-brand-gold">08:15</strong> on 21-02-2026.
+                        </p>
+                        <div class="mt-3 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                            <span class="text-green-400 text-xs font-semibold">Delivered</span>
+                        </div>
+                    </div>
+
+                    <!-- Decorative -->
+                    <div class="absolute top-0 right-0 opacity-5 -rotate-12 translate-x-6 -translate-y-6">
+                        <i class="bi bi-megaphone-fill text-[180px]"></i>
+                    </div>
+                </div>
+
+                <!-- Floating badge -->
+                <div
+                    class="absolute -bottom-4 -left-4 bg-brand-gold text-white px-5 py-3 rounded-2xl shadow-glow font-bold text-sm flex items-center gap-2">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Instant Delivery
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="section-padding grid md:grid-cols-2 gap-16 items-center scroll-reveal">
+        <div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-brand-deep mb-6 uppercase tracking-tighter">
+                Institutional Excellence <br> & Safety Assurance</h2>
+            <div class="w-20 h-1.5 bg-brand-gold mb-8 rounded-full"></div>
+
+            <ul class="space-y-6">
+                <li class="flex gap-4">
+                    <div
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-brand-deep font-bold italic">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-800">Academic Credibility</h5>
+                        <p class="text-slate-500">Built for VET Institute's high standards of technological
+                            integration.
+                        </p>
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-brand-deep font-bold italic">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-800">Unmatched Safety</h5>
+                        <p class="text-slate-500">Ensuring student safety with verified location-based boarding and
+                            authenticated device logs.</p>
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-brand-deep font-bold italic">
+                        <i class="bi bi-gear-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-800">Total Accountability</h5>
+                        <p class="text-slate-500">Eliminating proxy attendance with browser fingerprinting and
+                            proximity-based verification rules.
+                        </p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="bg-brand-deep rounded-2xl p-8 relative overflow-hidden group">
+            <div class="relative z-10 text-white">
+                <p class="text-brand-gold font-bold mb-4 italic text-lg uppercase">"Safety first, technology
+                    always."
+                </p>
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center border border-white/30">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold">VET IAS Administration</p>
+                        <p class="text-white/60 text-sm">Bus Management Division</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Decorative Elements -->
+            <div class="absolute top-0 right-0 p-4 opacity-10 transform -rotate-12 translate-x-4 -translate-y-4">
+                <i class="bi bi-shield-shaded text-[200px]"></i>
+            </div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-brand-orange/20 blur-3xl rounded-full"></div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-links">
-                <a href="#home">Home</a>
-                <a href="#features">Features</a>
-                <a href="#routes">Routes</a>
-                <a href="/login">Login</a>
+    <footer class="bg-brand-dark pt-20 pb-10">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
+            <div class="md:col-span-2">
+                <div class="flex items-center gap-3 mb-6">
+                    <img src="{{ url_for('static', filename='VET-IAS-Logo3-1.png') }}" alt="VET IAS Logo"
+                        class="h-14 brightness-0 invert">
+                    <div>
+                        <span class="block text-white font-bold text-xl uppercase tracking-widest">VET
+                            INSTITUTE</span>
+                        <span class="block text-slate-400 text-xs font-semibold">Arts and Science</span>
+                    </div>
+                </div>
+                <p class="text-slate-400 max-w-sm mb-6 leading-relaxed">
+                    A premium digital solution for institutional transportation management,
+                    prioritizing safety, reliability, and technological innovation.
+                </p>
+                <div class="flex gap-4">
+                    <a href="#"
+                        class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white hover:bg-brand-orange transition-standard"><i
+                            class="bi bi-facebook"></i></a>
+                    <a href="#"
+                        class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white hover:bg-brand-orange transition-standard"><i
+                            class="bi bi-twitter-x"></i></a>
+                    <a href="#"
+                        class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white hover:bg-brand-orange transition-standard"><i
+                            class="bi bi-instagram"></i></a>
+                </div>
             </div>
-            <div class="social-icons">
-                <a href="#"><i class="bi bi-facebook"></i></a>
-                <a href="#"><i class="bi bi-twitter"></i></a>
-                <a href="#"><i class="bi bi-instagram"></i></a>
-                <a href="#"><i class="bi bi-envelope"></i></a>
+
+            <div>
+                <h6 class="text-white font-bold mb-6 uppercase tracking-widest text-sm">Quick Links</h6>
+                <ul class="space-y-4 text-slate-400">
+                    <li><a href="#home" class="hover:text-brand-gold transition-standard">Home</a></li>
+                    <li><a href="#features" class="hover:text-brand-gold transition-standard">Features</a></li>
+                    <li><a href="#how-it-works" class="hover:text-brand-gold transition-standard">How It Works</a>
+                    </li>
+                    <li><a href="/login" class="hover:text-brand-gold transition-standard">Login Portal</a></li>
+                </ul>
             </div>
-            <div class="copyright">
-                &copy; 2026 VET IAS College Bus Management System. All Rights Reserved.
+
+            <div>
+                <h6 class="text-white font-bold mb-6 uppercase tracking-widest text-sm">Contact Info</h6>
+                <ul class="space-y-4 text-slate-400 text-sm">
+                    <li class="flex gap-3">
+                        <i class="bi bi-geo-alt text-brand-orange"></i>
+                        <span>VET Institute of Arts and Science,<br>Erode, Tamil Nadu.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <i class="bi bi-envelope text-brand-orange"></i>
+                        <a href="mailto:info@vetias.ac.in" class="hover:text-brand-gold">info@vetias.ac.in</a>
+                    </li>
+                    <li class="flex gap-3">
+                        <i class="bi bi-telephone text-brand-orange"></i>
+                        <span>+91 424 243 0089</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div
+            class="max-w-7xl mx-auto px-6 pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-500 text-xs">
+            <p>&copy; 2026 VET Institute of Arts and Science. All Rights Reserved.</p>
+            <div class="flex gap-8">
+                <a href="#" class="hover:text-white transition-standard">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition-standard">Terms of Service</a>
             </div>
         </div>
     </footer>
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Scroll Reveal Animation
+            const reveals = document.querySelectorAll('.scroll-reveal');
+            const revealOnScroll = () => {
+                reveals.forEach(reveal => {
+                    const windowHeight = window.innerHeight;
+                    const revealTop = reveal.getBoundingClientRect().top;
+                    const revealPoint = 150;
+                    if (revealTop < windowHeight - revealPoint) {
+                        reveal.classList.add('active');
+                    }
+                });
+            };
+            window.addEventListener('scroll', revealOnScroll);
+            revealOnScroll(); // Initial check
+
+            // Mobile Menu Logic
+            const menuBtn = document.getElementById('menuBtn');
+            // const closeMenu = document.getElementById('closeMenu'); // Removed as there's no close button
+            const mobileMenu = document.getElementById('mobile-menu');
+            const navLinks = document.querySelectorAll('.mobile-nav-link');
+
+            const toggleMenu = () => {
+                if (!mobileMenu) return;
+                const isOpen = mobileMenu.classList.contains('opacity-100');
+                if (isOpen) {
+                    mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    mobileMenu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    menuBtn.setAttribute('aria-expanded', 'false');
+                    document.body.style.overflow = '';
+                } else {
+                    mobileMenu.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    mobileMenu.setAttribute('aria-hidden', 'false');
+                    menuBtn.setAttribute('aria-expanded', 'true');
+                }
+            };
+
+            const handleMobileLinkClick = (e) => {
+                toggleMenu();
+                if (!e.currentTarget.getAttribute('href').startsWith('#')) {
+                    window.scrollTo({ top: 0, behavior: 'instant' });
+                }
+            }
+
+            menuBtn?.addEventListener('click', () => toggleMenu());
+            navLinks.forEach(link => link.addEventListener('click', handleMobileLinkClick));
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileMenu?.classList.contains('translate-x-0')) {
+                    toggleMenu(true);
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

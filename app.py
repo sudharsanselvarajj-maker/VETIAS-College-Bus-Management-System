@@ -49,6 +49,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 SKIP_DEVICE_CHECK = os.environ.get('SKIP_DEVICE_CHECK', 'False') == 'True'
+GEOFENCE_LIMIT = int(os.environ.get('GEOFENCE_LIMIT', 100)) # Default 100m for better GPS reliability
 
 db.init_app(app)
 Session(app)
@@ -473,16 +474,19 @@ def mark_attendance():
         print(f"[FAIL] Bus {bus_no_qr} location not available in DB or Cache.")
         return jsonify({'status': 'error', 'message': 'Bus not active/Syncing...'})
 
-    # 3. Geofence Check (Strict 15m)
+    # 3. Geofence Check (Lenient Buffer)
     distance = haversine(lat, lng, master_lat, master_lng)
     
-    # SYSTEM LOGS (VERY IMPORTANT FOR USER)
+    # SYSTEM LOGS (VERY IMPORTANT FOR DEBUGGING)
     print(f"\n[SYSTEM GEO] Student: ({lat}, {lng}) | Bus: ({master_lat}, {master_lng})")
-    print(f"[SYSTEM GEO] Distance: {distance:.2f} meters (Limit: 15m)")
+    print(f"[SYSTEM GEO] Distance: {distance:.2f} meters (Limit: {GEOFENCE_LIMIT}m)")
     
-    if distance > 15: 
+    if distance > GEOFENCE_LIMIT: 
          print(f"[FAIL] Geofence Blocked: {student.name} is too far ({int(distance)}m).")
-         return jsonify({'status': 'error', 'message': f'Geofence Failed! Too far from bus ({int(distance)}m).'}) 
+         return jsonify({
+             'status': 'error', 
+             'message': f'Geofence Failed! Too far from bus ({int(distance)}m). Distance limit is {GEOFENCE_LIMIT}m.'
+         }) 
 
     # 4. Device Binding
     current_device = data.get('device_id')

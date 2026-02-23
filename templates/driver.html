@@ -380,9 +380,16 @@
 
         // Initialize Centralized Driver Logic
         if (typeof DriverApp !== 'undefined') {
-            DriverApp.startAutoSync(BUS_NO);
-            DriverApp.startManifestSync();
-            DriverApp.startQRGen();
+            // Proactive Location Prompt (Google Maps Style)
+            Utils.verifyLocation().then(success => {
+                if (success) {
+                    DriverApp.startAutoSync(BUS_NO);
+                    DriverApp.startManifestSync();
+                    DriverApp.startQRGen();
+                } else {
+                    showToast("GPS Required to start tracking. Please enable location.", "error");
+                }
+            });
         } else {
             console.error("DriverApp not found in scripts.js");
         }

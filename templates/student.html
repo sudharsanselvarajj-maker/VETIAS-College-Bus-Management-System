@@ -444,7 +444,7 @@
                     <i class="bi bi-geo-alt-fill text-indigo-500 mt-0.5 flex-shrink-0 text-base"></i>
                     <p class="text-xs text-slate-500 leading-relaxed m-0">
                         <strong class="text-slate-700">GPS required.</strong>
-                        Your device must be within <strong class="text-indigo-600">15 metres</strong>
+                        Your device must be within <strong class="text-indigo-600">100 metres</strong>
                         of the designated bus stop to verify attendance.
                     </p>
                 </div>
@@ -573,6 +573,11 @@
 
                 // Save state
                 localStorage.setItem('student_last_tab', sectionId);
+
+                // Proactive Location Prompt (Google Maps Style)
+                if (sectionId === 'attendance') {
+                    Utils.verifyLocation();
+                }
             };
 
             // Mobile Menu Controller

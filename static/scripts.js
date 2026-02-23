@@ -56,6 +56,18 @@ const Utils = {
                 optionsHigh
             );
         });
+    },
+
+    // 3. Proactive Location Check
+    verifyLocation: async () => {
+        try {
+            await Utils.getLocation();
+            showToast("Location synchronized.", "success");
+            return true;
+        } catch (e) {
+            showToast("Location required: " + e, "error");
+            return false;
+        }
     }
 };
 

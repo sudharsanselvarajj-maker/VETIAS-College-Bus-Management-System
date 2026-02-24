@@ -250,21 +250,42 @@ Transport Administration
             msg.attach(MIMEText(body, 'plain', 'utf-8'))
             msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
-            # Setup SMTP Connection
-            print(f"[SMTP] Connecting to {smtp_server}:{smtp_port}...")
-            sys.stdout.flush()
-            server = smtplib.SMTP(smtp_server, smtp_port)
-            server.set_debuglevel(1) # Enable debug for console logs
-            server.starttls()
-            
-            print(f"[SMTP] Attempting login for {smtp_user}...")
-            sys.stdout.flush()
-            server.login(smtp_user, smtp_pass)
-            
-            print(f"[SMTP] Handshake successful. Sending message...")
-            sys.stdout.flush()
-            server.send_message(msg)
-            server.quit()
+            # Dual-Mode SMTP: Try SSL (port 465) first for Render compatibility,
+            # then fall back to STARTTLS (port 587)
+            sent = False
+
+            # --- Method 1: SSL on port 465 (preferred on Render) ---
+            try:
+                import ssl
+                print(f"[SMTP] Trying SSL connection to {smtp_server}:465 ...")
+                sys.stdout.flush()
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(smtp_server, 465, context=context) as server_ssl:
+                    server_ssl.set_debuglevel(1)
+                    server_ssl.login(smtp_user, smtp_pass)
+                    server_ssl.send_message(msg)
+                print(f"[SMTP SSL] Email sent successfully via port 465.")
+                sys.stdout.flush()
+                sent = True
+            except Exception as ssl_err:
+                print(f"[SMTP SSL] Port 465 failed: {ssl_err}. Trying STARTTLS on port 587...")
+                sys.stdout.flush()
+
+            # --- Method 2: STARTTLS on port 587 (fallback) ---
+            if not sent:
+                print(f"[SMTP] Connecting via STARTTLS to {smtp_server}:587 ...")
+                sys.stdout.flush()
+                server = smtplib.SMTP(smtp_server, 587, timeout=30)
+                server.set_debuglevel(1)
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(smtp_user, smtp_pass)
+                print(f"[SMTP STARTTLS] Handshake successful. Sending message...")
+                sys.stdout.flush()
+                server.send_message(msg)
+                server.quit()
+                sent = True
 
             print(f"EMAIL SENT SUCCESSFULLY TO: {to_email}")
             sys.stdout.flush()

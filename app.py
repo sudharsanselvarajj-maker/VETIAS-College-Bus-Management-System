@@ -60,7 +60,7 @@ with app.app_context():
 
 # VERSION STAMP FOR RENDER LOGS
 print("\n" + "="*50)
-print("🚀 VET IAS SYSTEM: VERSION 3.2 (PRODUCTION READY) STARTED")
+print("VET IAS SYSTEM: VERSION 3.2 (PRODUCTION READY) STARTED")
 print(f"   SMTP USER: {os.environ.get('SMTP_USER', 'NOT SET')}")
 print("="*50 + "\n")
 sys.stdout.flush()
@@ -193,6 +193,7 @@ class NotificationService:
         if not smtp_user or not smtp_pass:
             print("[CRITICAL ERROR] SMTP Credentials missing in environment variables!")
             sys.stdout.flush()
+            NotificationService.log_notification(parent_email or "Unknown", 'Email', "Boarding Confirmation", 'Failed', "Missing SMTP Credentials (SMTP_USER/SMTP_PASSWORD)")
             return False
 
         if os.environ.get('EMAIL_MODE', 'True') != 'True':
@@ -477,9 +478,17 @@ def mark_attendance():
     # 1. Decode QR Data
     try:
         bus_no_qr, timestamp_qr = qr_data.split('_', 1)
+        # Enforce 10-minute expiration
+        qr_time = datetime.datetime.fromisoformat(timestamp_qr)
+        time_diff = (datetime.datetime.now() - qr_time).total_seconds()
+        
+        if time_diff > 600: # 10 minutes
+            print(f"[FAIL] QR Expired: {student.name} scanned code from {qr_time}")
+            return jsonify({'status': 'error', 'message': 'QR Code Expired. Please scan the current code from the driver.'})
+            
     except Exception as e:
-        print(f"[FAIL] QR Decode Error: {e}")
-        return jsonify({'status': 'error', 'message': 'Invalid QR Code'})
+        print(f"[FAIL] QR Decode/Time Error: {e}")
+        return jsonify({'status': 'error', 'message': 'Invalid or Malformed QR Code'})
 
     bus_live = BusLive.query.filter_by(bus_no=bus_no_qr).first()
     cached_loc = BUS_LOCATION_CACHE.get(bus_no_qr)

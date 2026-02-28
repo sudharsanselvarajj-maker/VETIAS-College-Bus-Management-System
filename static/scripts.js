@@ -188,11 +188,14 @@ const DriverApp = {
                 // Clear old QR
                 document.getElementById("qrcode").innerHTML = "";
 
+                // Calculate size (Responsive for mobile)
+                const qrSize = window.innerWidth < 480 ? 180 : 250;
+
                 // Generate New
                 new QRCode(document.getElementById("qrcode"), {
                     text: data.qr_data,
-                    width: 250,
-                    height: 250
+                    width: qrSize,
+                    height: qrSize
                 });
 
                 // Reset Timer visually to be sync
